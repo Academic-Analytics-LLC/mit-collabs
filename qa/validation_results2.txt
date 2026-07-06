@@ -1,0 +1,20 @@
+CHECK 1b chord data == counts data (order-insensitive, all caps): PASS (ties ordered differently only)
+CHECK 2b counts within-works per anchor: PASS 72 FAIL 2 [('Health Sciences and Technology', 154, 153), ('Institute for Medical Engineering and Science (IMES)', 154, 153)]
+CHECK 3b counts partner units (same-kind convention): PASS 59 FAIL 15
+    ('Biological Engineering', [], [], [('Health Sciences and Technology', 127, 126)])
+    ('Biological Engineering, Department of', [], [], [('Institute for Medical Engineering and Science (IMES)', 127, 126)])
+    ('Chemical Engineering', [], [], [('Health Sciences and Technology', 41, 40)])
+    ('Chemical Engineering, Department of', [], [], [('Institute for Medical Engineering and Science (IMES)', 41, 40)])
+    ('Computer Science', [], [], [('Materials Science and Engineering', 10, 8)])
+    ('Economics', ['Health Sciences and Technology'], [], [])
+CHECK 4b institution works: equal 8175 | page lower 494 | page higher 41
+    ex page<sas: ('Aeronautics and Astronautics', 'Northeastern University', 22, 24)
+    ex page<sas: ('Aeronautics and Astronautics', 'Stanford University', 20, 22)
+    ex page<sas: ('Aeronautics and Astronautics', 'University of California, Santa Barbara', 9, 24)
+CHECK 5b network pairs: PASS 58 FAIL 16
+    ('Biological Engineering', 'netonly=4', 'sasonly=0', 'valdiff=0', [])
+    ('Biological Engineering, Department of', 'netonly=4', 'sasonly=0', 'valdiff=0', [])
+    ('Chemical Engineering', 'netonly=4', 'sasonly=0', 'valdiff=0', [])
+    ('Chemical Engineering, Department of', 'netonly=4', 'sasonly=0', 'valdiff=0', [])
+    ('Computer Science', 'netonly=4', 'sasonly=0', 'valdiff=1', [(['113951', '19111'], 3, 2)])
+    ('Economics', 'netonly=6', 'sasonly=0', 'valdiff=0', [])

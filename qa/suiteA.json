@@ -1,0 +1,57 @@
+[
+ {
+  "name": "counts_table.html error-free",
+  "pass": true,
+  "info": ""
+ },
+ {
+  "name": "counts_table.html renders",
+  "pass": true,
+  "info": "n=18"
+ },
+ {
+  "name": "counts physics oracle",
+  "pass": true,
+  "info": ""
+ },
+ {
+  "name": "counts_simple.html error-free",
+  "pass": true,
+  "info": ""
+ },
+ {
+  "name": "counts_simple.html renders",
+  "pass": true,
+  "info": "n=35"
+ },
+ {
+  "name": "counts_simple cards populated",
+  "pass": true,
+  "info": ""
+ },
+ {
+  "name": "counts_simple physics row",
+  "pass": true,
+  "info": ""
+ },
+ {
+  "name": "matrix_viz.html error-free",
+  "pass": true,
+  "info": ""
+ },
+ {
+  "name": "matrix_viz.html renders",
+  "pass": true,
+  "info": "n=35"
+ },
+ {
+  "name": "insights.html error-free",
+  "pass": true,
+  "info": ""
+ },
+ {
+  "name": "insights.html renders",
+  "pass": true,
+  "info": "n=20"
+ }
+]

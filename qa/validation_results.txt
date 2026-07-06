@@ -1,0 +1,18 @@
+==== DEEP VALIDATION RUN ====
+CHECK 1  chord.by_cap deep-equals counts.by_cap: FAIL
+CHECK 2  counts within-works, per anchor: PASS 72 FAIL 2
+CHECK 3  counts per-partner-unit across works, per anchor: PASS 3 FAIL 71
+CHECK 4  counts per-external-institution works, per anchor: PASS 14 FAIL 60
+CHECK 5  network pair-for-pair edge weights, per anchor: PASS 58 FAIL 16
+   DIFF: ('counts partners', 'Aeronautics and Astronautics', "pageonly=[] sasonly=['Applied Ocean Physics and Engineering, Department of', 'Materials Science and Engineering, Department of'] valdiff=[]", '')
+   DIFF: ('counts institutions', 'Aeronautics and Astronautics', "n_page=124 n_sas=124 ex=[('Northeastern University', 22, 24), ('Stanford University', 20, 22)]", '')
+   DIFF: ('counts partners', 'Aeronautics and Astronautics, Department of', "pageonly=[] sasonly=['Artificial Intelligence + Decision Making', 'Mathematics'] valdiff=[]", '')
+   DIFF: ('counts institutions', 'Aeronautics and Astronautics, Department of', "n_page=124 n_sas=124 ex=[('Northeastern University', 22, 24), ('Stanford University', 20, 22)]", '')
+   DIFF: ('counts partners', 'Anthropology Program', "pageonly=[] sasonly=['Social and Engineering Systems', 'Architecture'] valdiff=[]", '')
+   DIFF: ('counts partners', 'Applied Ocean Physics and Engineering, Department of', "pageonly=[] sasonly=['Media Arts and Sciences', 'Mechanical Engineering'] valdiff=[]", '')
+   DIFF: ('counts institutions', 'Applied Ocean Physics and Engineering, Department of', "n_page=85 n_sas=87 ex=[('University of California, San Diego', 17, 18), ('University of California, Irvine', 1, 3)]", '')
+   DIFF: ('counts partners', 'Architecture', "pageonly=[] sasonly=['Anthropology Program', 'Urban Studies and Planning, Department of'] valdiff=[]", '')
+   DIFF: ('counts partners', 'Architecture, Department of', "pageonly=[] sasonly=['Social and Engineering Systems', 'Urban Studies and Planning'] valdiff=[]", '')
+   DIFF: ('counts partners', 'Artificial Intelligence + Decision Making', "pageonly=[] sasonly=['Materials Science and Engineering, Department of', 'Biology, Department of'] valdiff=[]", '')
+   DIFF: ('counts institutions', 'Artificial Intelligence + Decision Making', "n_page=175 n_sas=180 ex=[('University of California, Berkeley', 96, 97), ('University of Maryland, College Park', 33, 34)]", '')
+   DIFF: ('counts partners', 'Atmospheres, Oceans, and Climate', "pageonly=[] sasonly=['Geology and Geophysics, Department of', 'Applied Ocean Physics and Engineering, Department of'] valdiff=[]", '')

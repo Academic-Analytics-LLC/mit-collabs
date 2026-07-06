@@ -1,0 +1,5 @@
+sas/details_base.csv
+sas/*_rows.csv
+sas/*_payload*.json
+data/
+*.checkpoint.pkl

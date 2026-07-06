@@ -1,0 +1,82 @@
+Unit,Unit Scholar,Unit Scholar ID,Collab Scholar,Collab Scholar ID,Co-Authored Articles,Co-Authored Books,Co-Authored Chapters,Co-Authored Conference Proceedings,Co-Authored Grants,Co-Authored Patents,Co-Authored Trials
+"Mathematics, Department of","BUSH, JOHN W. M",15460,"BAZANT, MARTIN Z",412297,2,0,0,0,0,0,0
+"Mathematics, Department of","BUSH, JOHN W. M",15460,"DUNKEL, JOERN",627158,1,0,0,0,0,0,0
+"Mathematics, Department of","BUSH, JOHN W. M",15460,"ROSALES, RODOLFO RUBEN",163044,1,0,0,0,0,0,0
+"Mathematics, Department of","VOGAN, DAVID A",24644,"LUSZTIG, GEORGE",64189,1,0,0,0,0,0,0
+"Mathematics, Department of","EDELMAN, ALAN",33041,"URSCHEL, JOHN CAMERON",1508126,1,0,0,0,0,0,0
+"Mathematics, Department of","ETINGOF, PAVEL I",35018,"URSCHEL, JOHN CAMERON",1508126,0,0,0,0,1,0,0
+"Mathematics, Department of","KAC, VICTOR",52712,"BEZRUKAVNIKOV, ROMAN",287125,1,0,0,0,0,0,0
+"Mathematics, Department of","LUSZTIG, GEORGE",64189,"VOGAN, DAVID A",24644,1,0,0,0,0,0,0
+"Mathematics, Department of","PARRILO, PABLO A",115030,"KELNER, JONATHAN ADAM",150169,0,0,0,0,1,0,0
+"Mathematics, Department of","PARRILO, PABLO A",115030,"MOITRA, ANKUR",627159,0,0,0,0,1,0,0
+"Mathematics, Department of","JERISON, DAVID S",148903,"SEIDEL, PAUL ALFRED",164913,0,2,0,0,0,0,0
+"Mathematics, Department of","JERISON, DAVID S",148903,"STANLEY, RICHARD P",167183,0,1,0,0,0,0,0
+"Mathematics, Department of","KELNER, JONATHAN ADAM",150169,"MOITRA, ANKUR",627159,0,0,0,0,1,0,0
+"Mathematics, Department of","KELNER, JONATHAN ADAM",150169,"PARRILO, PABLO A",115030,0,0,0,0,1,0,0
+"Mathematics, Department of","KELNER, JONATHAN ADAM",150169,"RIGOLLET, PHILIPPE",190653,0,0,0,0,2,0,0
+"Mathematics, Department of","ROSALES, RODOLFO RUBEN",163044,"BUSH, JOHN W. M",15460,1,0,0,0,0,0,0
+"Mathematics, Department of","ROSALES, RODOLFO RUBEN",163044,"DUNKEL, JOERN",627158,1,0,0,0,0,0,0
+"Mathematics, Department of","SEIDEL, PAUL ALFRED",164913,"JERISON, DAVID S",148903,0,2,0,0,0,0,0
+"Mathematics, Department of","SEIDEL, PAUL ALFRED",164913,"STANLEY, RICHARD P",167183,0,2,0,0,0,0,0
+"Mathematics, Department of","STANLEY, RICHARD P",167183,"JERISON, DAVID S",148903,0,1,0,0,0,0,0
+"Mathematics, Department of","STANLEY, RICHARD P",167183,"SEIDEL, PAUL ALFRED",164913,0,2,0,0,0,0,0
+"Mathematics, Department of","RIGOLLET, PHILIPPE",190653,"KELNER, JONATHAN ADAM",150169,0,0,0,0,2,0,0
+"Mathematics, Department of","BEZRUKAVNIKOV, ROMAN",287125,"KAC, VICTOR",52712,1,0,0,0,0,0,0
+"Mathematics, Department of","BEZRUKAVNIKOV, ROMAN",287125,"YUN, ZHIWEI",525312,0,1,0,0,0,0,0
+"Mathematics, Department of","COLDING, TOBIAS",287369,"MINICOZZI, WILLIAM",544524,7,0,0,0,0,0,0
+"Mathematics, Department of","MAULIK, DAVESH",406197,"NEGUT, ANDREI",789758,1,0,0,0,0,0,0
+"Mathematics, Department of","ZHANG, WEI",406203,"YUN, ZHIWEI",525312,1,0,0,0,0,0,0
+"Mathematics, Department of","BAZANT, MARTIN Z",412297,"BUSH, JOHN W. M",15460,2,0,0,0,0,0,0
+"Mathematics, Department of","YUN, ZHIWEI",525312,"BEZRUKAVNIKOV, ROMAN",287125,0,1,0,0,0,0,0
+"Mathematics, Department of","YUN, ZHIWEI",525312,"ZHANG, WEI",406203,1,0,0,0,0,0,0
+"Mathematics, Department of","MINICOZZI, WILLIAM",544524,"COLDING, TOBIAS",287369,7,0,0,0,0,0,0
+"Mathematics, Department of","DUNKEL, JOERN",627158,"BUSH, JOHN W. M",15460,1,0,0,0,0,0,0
+"Mathematics, Department of","DUNKEL, JOERN",627158,"ROSALES, RODOLFO RUBEN",163044,1,0,0,0,0,0,0
+"Mathematics, Department of","MOITRA, ANKUR",627159,"KELNER, JONATHAN ADAM",150169,0,0,0,0,1,0,0
+"Mathematics, Department of","MOITRA, ANKUR",627159,"MOSSEL, ELCHANAN",750286,0,0,0,0,1,0,0
+"Mathematics, Department of","MOITRA, ANKUR",627159,"PARRILO, PABLO A",115030,0,0,0,0,1,0,0
+"Mathematics, Department of","MOSSEL, ELCHANAN",750286,"MINZER PARNES, DOR",1108345,0,0,0,2,0,0,0
+"Mathematics, Department of","MOSSEL, ELCHANAN",750286,"MOITRA, ANKUR",627159,0,0,0,0,1,0,0
+"Mathematics, Department of","NEGUT, ANDREI",789758,"MAULIK, DAVESH",406197,1,0,0,0,0,0,0
+"Mathematics, Department of","ZHAO, YUFEI",842330,"SAUERMANN, LISA",959065,1,0,0,0,0,0,0
+"Mathematics, Department of","SAUERMANN, LISA",959065,"ZHAO, YUFEI",842330,1,0,0,0,0,0,0
+"Mathematics, Department of","MINZER PARNES, DOR",1108345,"MOSSEL, ELCHANAN",750286,0,0,0,2,0,0,0
+"Mathematics, Department of","URSCHEL, JOHN CAMERON",1508126,"EDELMAN, ALAN",33041,1,0,0,0,0,0,0
+"Mathematics, Department of","URSCHEL, JOHN CAMERON",1508126,"ETINGOF, PAVEL I",35018,0,0,0,0,1,0,0
+"Mathematics, Department of","ALVAREZ-GAVELA, DANIEL",1770168,,,,,,,,,
+"Mathematics, Department of","BAI, SHAOYUN",1813646,,,,,,,,,
+"Mathematics, Department of","BERGER LEIGHTON, BONNIE",287114,,,,,,,,,
+"Mathematics, Department of","BORGA, JACOPO",1954636,,,,,,,,,
+"Mathematics, Department of","BORODIN, ALEXEI",412355,,,,,,,,,
+"Mathematics, Department of","COHN, HENRY",544526,,,,,,,,,
+"Mathematics, Department of","COLLINS, TRISTAN",787576,,,,,,,,,
+"Mathematics, Department of","DEMANET, LAURENT",370170,,,,,,,,,
+"Mathematics, Department of","DYATLOV, SEMYON",779071,,,,,,,,,
+"Mathematics, Department of","FREEDMAN, DANIEL Z",34298,,,,,,,,,
+"Mathematics, Department of","GOEMANS, MICHEL X",144133,,,,,,,,,
+"Mathematics, Department of","GUTH, LAWRENCE",544523,,,,,,,,,
+"Mathematics, Department of","HAHN, JEREMY M",1386887,,,,,,,,,
+"Mathematics, Department of","HOSOI, ANETTE E",50247,,,,,,,,,
+"Mathematics, Department of","JOHNSON, STEVEN G",288194,,,,,,,,,
+"Mathematics, Department of","KAMRIN, KENNETH N",488099,,,,,,,,,
+"Mathematics, Department of","KEHLE, CHRISTOPH",1997389,,,,,,,,,
+"Mathematics, Department of","KIM, JU-LEE",66628,,,,,,,,,
+"Mathematics, Department of","LAWRIE, ANDREW W",827639,,,,,,,,,
+"Mathematics, Department of","LEIGHTON, FRANK T",152647,,,,,,,,,
+"Mathematics, Department of","LOGUNOV, ALEKSANDR A",919417,,,,,,,,,
+"Mathematics, Department of","MELROSE, RICHARD B",69031,,,,,,,,,
+"Mathematics, Department of","MILLER, HAYNES R",156568,,,,,,,,,
+"Mathematics, Department of","MROWKA, TOMASZ S",80906,,,,,,,,,
+"Mathematics, Department of","OZUCH-MEERSSEMAN, TRISTAN",1977476,,,,,,,,,
+"Mathematics, Department of","PICCIRILLO, LISA M",1092824,,,,,,,,,
+"Mathematics, Department of","POONEN, BJORN",176123,,,,,,,,,
+"Mathematics, Department of","POSTNIKOV, ALEXANDER",93547,,,,,,,,,
+"Mathematics, Department of","SHEFFIELD, SCOTT ROGER",176121,,,,,,,,,
+"Mathematics, Department of","SHOR, PETER WILLISTON",85149,,,,,,,,,
+"Mathematics, Department of","SIPSER, MICHAEL F",104333,,,,,,,,,
+"Mathematics, Department of","STAFFILANI, GIGLIOLA",86769,,,,,,,,,
+"Mathematics, Department of","STARK, HAROLD",124481,,,,,,,,,
+"Mathematics, Department of","STRANG, GILBERT GILBERT",289445,,,,,,,,,
+"Mathematics, Department of","SUN, NIKE",771980,,,,,,,,,
+"Mathematics, Department of","SUTHERLAND, ANDREW VICTOR",544528,,,,,,,,,
+"Mathematics, Department of","WAINWRIGHT, MARTIN J",170655,,,,,,,,,

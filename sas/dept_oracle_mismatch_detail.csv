@@ -1,0 +1,3 @@
+dept,unit_id,scope,scholar_id,scholar_name,collab_id,collab_name,type,oracle_count,our_count,note
+ComparativeMediaStudiesWriting,16128,across,61415,"KLOPFER, ERIC",827672,"REICH, BLAIR JUSTIN F",Article,1,0,"Article 10.21428/E4BAEDD9.81164B06 - both scholars tagged UnitId=16128 in our data (Within Unit); same pair/article also appears in portal's own across_units.csv download for this anchor, suggesting a Dept/Program unit-id collision under an identical display name on the portal side."
+ComparativeMediaStudiesWriting,16128,across,827672,"REICH, BLAIR JUSTIN F",61415,"KLOPFER, ERIC",Article,1,0,"Reverse direction of the row above - same underlying discrepancy."

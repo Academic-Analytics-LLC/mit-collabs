@@ -1,0 +1,84 @@
+Unit,Unit Scholar,Unit Scholar ID,Collab Scholar,Collab Scholar ID,Co-Authored Articles,Co-Authored Books,Co-Authored Chapters,Co-Authored Conference Proceedings,Co-Authored Grants,Co-Authored Patents,Co-Authored Trials
+"Economics, Department of","ANGRIST, JOSHUA",4478,"ABADIE, ALBERTO",241039,1,0,0,0,0,0,0
+"Economics, Department of","ANGRIST, JOSHUA",4478,"AUTOR, DAVID H",131945,1,0,0,0,0,0,0
+"Economics, Department of","ANGRIST, JOSHUA",4478,"PATHAK, PARAG",175960,4,0,0,0,0,0,0
+"Economics, Department of","CHERNOZHUKOV, VICTOR V",20338,"ACEMOGLU, DARON DARON",286887,1,0,0,0,0,0,0
+"Economics, Department of","CHERNOZHUKOV, VICTOR V",20338,"NEWEY, WHITNEY K",83855,5,0,0,0,0,0,0
+"Economics, Department of","CHERNOZHUKOV, VICTOR V",20338,"WERNING, IVAN",128824,1,0,0,0,0,0,0
+"Economics, Department of","CHERNOZHUKOV, VICTOR V",20338,"WHINSTON, MICHAEL DENNIS",114534,1,0,0,0,0,0,0
+"Economics, Department of","DUFLO, ESTHER",29770,"BANERJEE, ABHIJIT",132352,11,2,1,0,0,0,1
+"Economics, Department of","DUFLO, ESTHER",29770,"OLKEN, BENJAMIN",175961,6,0,0,0,0,0,1
+"Economics, Department of","DUFLO, ESTHER",29770,"SCHILBACH, FRANK",789739,2,0,0,0,0,0,0
+"Economics, Department of","FINKELSTEIN, AMY",32612,"AUTOR, DAVID H",131945,0,0,0,0,0,0,1
+"Economics, Department of","FINKELSTEIN, AMY",32612,"BANERJEE, ABHIJIT",132352,1,0,0,0,0,0,0
+"Economics, Department of","FINKELSTEIN, AMY",32612,"OLKEN, BENJAMIN",175961,1,0,0,0,0,0,0
+"Economics, Department of","FUDENBERG, DREW",34875,"MULLAINATHAN, SENDHIL",109514,1,0,0,0,0,0,0
+"Economics, Department of","FUDENBERG, DREW",34875,"WOLITZKY, ALEXANDER GREENBERG",525294,2,0,0,0,0,0,0
+"Economics, Department of","NEWEY, WHITNEY K",83855,"CHERNOZHUKOV, VICTOR V",20338,5,0,0,0,0,0,0
+"Economics, Department of","MULLAINATHAN, SENDHIL",109514,"FUDENBERG, DREW",34875,1,0,0,0,0,0,0
+"Economics, Department of","MULLAINATHAN, SENDHIL",109514,"RAMBACHAN, ASHESHANANDA",1823993,1,0,0,0,0,0,0
+"Economics, Department of","MULLAINATHAN, SENDHIL",109514,"SCHILBACH, FRANK",789739,0,0,0,0,1,0,0
+"Economics, Department of","WHINSTON, MICHAEL DENNIS",114534,"ACEMOGLU, DARON DARON",286887,1,0,0,0,0,0,0
+"Economics, Department of","WHINSTON, MICHAEL DENNIS",114534,"CHERNOZHUKOV, VICTOR V",20338,1,0,0,0,0,0,0
+"Economics, Department of","WHINSTON, MICHAEL DENNIS",114534,"WERNING, IVAN",128824,1,0,0,0,0,0,0
+"Economics, Department of","SCHMALENSEE, RICHARD",121834,"JOSKOW, PAUL L",412329,3,0,0,0,0,0,0
+"Economics, Department of","WERNING, IVAN",128824,"ACEMOGLU, DARON DARON",286887,1,0,0,0,0,0,0
+"Economics, Department of","WERNING, IVAN",128824,"CHERNOZHUKOV, VICTOR V",20338,1,0,0,0,0,0,0
+"Economics, Department of","WERNING, IVAN",128824,"COSTINOT, ARNAUD",175964,1,0,0,0,0,0,0
+"Economics, Department of","WERNING, IVAN",128824,"WHINSTON, MICHAEL DENNIS",114534,1,0,0,0,0,0,0
+"Economics, Department of","AUTOR, DAVID H",131945,"ACEMOGLU, DARON DARON",286887,1,0,0,0,0,0,0
+"Economics, Department of","AUTOR, DAVID H",131945,"ANGRIST, JOSHUA",4478,1,0,0,0,0,0,0
+"Economics, Department of","AUTOR, DAVID H",131945,"FINKELSTEIN, AMY",32612,0,0,0,0,0,0,1
+"Economics, Department of","BANERJEE, ABHIJIT",132352,"DUFLO, ESTHER",29770,11,2,1,0,0,0,1
+"Economics, Department of","BANERJEE, ABHIJIT",132352,"FINKELSTEIN, AMY",32612,1,0,0,0,0,0,0
+"Economics, Department of","BANERJEE, ABHIJIT",132352,"OLKEN, BENJAMIN",175961,9,0,0,0,0,0,1
+"Economics, Department of","BANERJEE, ABHIJIT",132352,"SCHILBACH, FRANK",789739,2,0,0,0,0,0,0
+"Economics, Department of","ELLISON, GLENN DAVID",141014,"PATHAK, PARAG",175960,1,0,0,0,0,0,0
+"Economics, Department of","MIKUSHEVA, ANNA",156485,"ANDREWS, ISAIAH SMITH",827633,1,0,0,0,0,0,0
+"Economics, Department of","PATHAK, PARAG",175960,"ANGRIST, JOSHUA",4478,4,0,0,0,0,0,0
+"Economics, Department of","PATHAK, PARAG",175960,"ELLISON, GLENN DAVID",141014,1,0,0,0,0,0,0
+"Economics, Department of","OLKEN, BENJAMIN",175961,"BANERJEE, ABHIJIT",132352,9,0,0,0,0,0,1
+"Economics, Department of","OLKEN, BENJAMIN",175961,"DUFLO, ESTHER",29770,6,0,0,0,0,0,1
+"Economics, Department of","OLKEN, BENJAMIN",175961,"FINKELSTEIN, AMY",32612,1,0,0,0,0,0,0
+"Economics, Department of","COSTINOT, ARNAUD",175964,"DONALDSON, DAVID JOHN",632119,1,0,0,0,1,0,0
+"Economics, Department of","COSTINOT, ARNAUD",175964,"WERNING, IVAN",128824,1,0,0,0,0,0,0
+"Economics, Department of","ABADIE, ALBERTO",241039,"ANGRIST, JOSHUA",4478,1,0,0,0,0,0,0
+"Economics, Department of","ACEMOGLU, DARON DARON",286887,"AUTOR, DAVID H",131945,1,0,0,0,0,0,0
+"Economics, Department of","ACEMOGLU, DARON DARON",286887,"CHERNOZHUKOV, VICTOR V",20338,1,0,0,0,0,0,0
+"Economics, Department of","ACEMOGLU, DARON DARON",286887,"WERNING, IVAN",128824,1,0,0,0,0,0,0
+"Economics, Department of","ACEMOGLU, DARON DARON",286887,"WHINSTON, MICHAEL DENNIS",114534,1,0,0,0,0,0,0
+"Economics, Department of","ACEMOGLU, DARON DARON",286887,"WOLITZKY, ALEXANDER GREENBERG",525294,1,0,0,0,0,0,0
+"Economics, Department of","JOSKOW, PAUL L",412329,"SCHMALENSEE, RICHARD",121834,3,0,0,0,0,0,0
+"Economics, Department of","WOLITZKY, ALEXANDER GREENBERG",525294,"ACEMOGLU, DARON DARON",286887,1,0,0,0,0,0,0
+"Economics, Department of","WOLITZKY, ALEXANDER GREENBERG",525294,"FUDENBERG, DREW",34875,2,0,0,0,0,0,0
+"Economics, Department of","ATKIN, DAVID G",629713,"DONALDSON, DAVID JOHN",632119,0,0,1,0,0,0,0
+"Economics, Department of","DONALDSON, DAVID JOHN",632119,"ATKIN, DAVID G",629713,0,0,1,0,0,0,0
+"Economics, Department of","DONALDSON, DAVID JOHN",632119,"COSTINOT, ARNAUD",175964,1,0,0,0,1,0,0
+"Economics, Department of","AGARWAL, NIKHIL",779053,"SALZ, TOBIAS",823301,2,0,0,0,0,0,0
+"Economics, Department of","SCHILBACH, FRANK",789739,"BANERJEE, ABHIJIT",132352,2,0,0,0,0,0,0
+"Economics, Department of","SCHILBACH, FRANK",789739,"DUFLO, ESTHER",29770,2,0,0,0,0,0,0
+"Economics, Department of","SCHILBACH, FRANK",789739,"MULLAINATHAN, SENDHIL",109514,0,0,0,0,1,0,0
+"Economics, Department of","SALZ, TOBIAS",823301,"AGARWAL, NIKHIL",779053,2,0,0,0,0,0,0
+"Economics, Department of","ANDREWS, ISAIAH SMITH",827633,"MIKUSHEVA, ANNA",156485,1,0,0,0,0,0,0
+"Economics, Department of","JAEGER, SIMON",827677,"ROUSSILLE, NINA ISABELLE NATACHA",1823994,1,0,0,0,0,0,0
+"Economics, Department of","RAMBACHAN, ASHESHANANDA",1823993,"MULLAINATHAN, SENDHIL",109514,1,0,0,0,0,0,0
+"Economics, Department of","ROUSSILLE, NINA ISABELLE NATACHA",1823994,"JAEGER, SIMON",827677,1,0,0,0,0,0,0
+"Economics, Department of","BALL, IAN",1351832,,,,,,,,,
+"Economics, Department of","BERAJA, MARTIN ALBERTO",827676,,,,,,,,,
+"Economics, Department of","BLANCHARD, OLIVIER JEAN",10572,,,,,,,,,
+"Economics, Department of","CABALLERO, RICARDO J",16278,,,,,,,,,
+"Economics, Department of","ELLISON, SARA FISHER",544479,,,,,,,,,
+"Economics, Department of","GIBBONS, ROBERT S",287812,,,,,,,,,
+"Economics, Department of","GRUBER, JONATHAN",41010,,,,,,,,,
+"Economics, Department of","HARRIS, JEFFREY E",51694,,,,,,,,,
+"Economics, Department of","HENDREN, NATHANIEL DOUGLAS",630437,,,,,,,,,
+"Economics, Department of","MORRIS, STEPHEN",293928,,,,,,,,,
+"Economics, Department of","MOSCONA, JACOB",1508217,,,,,,,,,
+"Economics, Department of","PIORE, MICHAEL J",160630,,,,,,,,,
+"Economics, Department of","POTERBA, JAMES MICHAEL",160940,,,,,,,,,
+"Economics, Department of","PRELEC, DRAZEN",161067,,,,,,,,,
+"Economics, Department of","ROSE, NANCY L",120488,,,,,,,,,
+"Economics, Department of","TOWNSEND, ROBERT",175965,,,,,,,,,
+"Economics, Department of","WHEATON, WILLIAM C",171695,,,,,,,,,
+"Economics, Department of","WOLF, CHRISTIAN K",1351833,,,,,,,,,
+"Economics, Department of","YILDIZ, MUHAMET",130451,,,,,,,,,

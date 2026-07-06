@@ -1,0 +1,72 @@
+[
+ {
+  "name": "chord error-free",
+  "pass": true,
+  "info": ""
+ },
+ {
+  "name": "chord 7 school arcs",
+  "pass": true,
+  "info": ""
+ },
+ {
+  "name": "network deep-link error-free",
+  "pass": true,
+  "info": ""
+ },
+ {
+  "name": "deep-link selects person",
+  "pass": true,
+  "info": ""
+ },
+ {
+  "name": "deep-link opens panel",
+  "pass": true,
+  "info": ""
+ },
+ {
+  "name": "default scope = All",
+  "pass": true,
+  "info": ""
+ },
+ {
+  "name": "legend person=Rank",
+  "pass": true,
+  "info": ""
+ },
+ {
+  "name": "legend dept=College / School",
+  "pass": true,
+  "info": ""
+ },
+ {
+  "name": "level order big-to-small",
+  "pass": true,
+  "info": ""
+ },
+ {
+  "name": "key TOC resolves",
+  "pass": true,
+  "info": "17 links"
+ },
+ {
+  "name": "key nav 8 links",
+  "pass": true,
+  "info": ""
+ },
+ {
+  "name": "key AAD sentence clean",
+  "pass": true,
+  "info": ""
+ },
+ {
+  "name": "key no Data source callout",
+  "pass": true,
+  "info": ""
+ },
+ {
+  "name": "key three unit types",
+  "pass": true,
+  "info": ""
+ }
+]

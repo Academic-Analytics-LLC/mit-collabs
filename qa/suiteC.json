@@ -1,0 +1,62 @@
+[
+ {
+  "name": "details error-free",
+  "pass": true,
+  "info": ""
+ },
+ {
+  "name": "headers match reviewed format",
+  "pass": true,
+  "info": "Faculty Name|Department|Works|Collaboration Type|Year|Collab ID|Collab Detail|Collab Title"
+ },
+ {
+  "name": "CSV rows == on-screen total",
+  "pass": true,
+  "info": "7232 vs 7232"
+ },
+ {
+  "name": "CSV header fields == first-row fields",
+  "pass": true,
+  "info": "12"
+ },
+ {
+  "name": "CSV spelled-out headers",
+  "pass": true,
+  "info": ""
+ },
+ {
+  "name": "CSV no clinical unit refs",
+  "pass": true,
+  "info": ""
+ },
+ {
+  "name": "unique CSV rows == distinct works",
+  "pass": true,
+  "info": "1993 vs 1993"
+ },
+ {
+  "name": "year multiselect data-years only",
+  "pass": true,
+  "info": "14 yrs"
+ },
+ {
+  "name": "year filter reduces rows",
+  "pass": true,
+  "info": "366 distinct works · 1,388 row"
+ },
+ {
+  "name": "clear filters restores",
+  "pass": true,
+  "info": ""
+ },
+ {
+  "name": "no clinical in visible UI",
+  "pass": true,
+  "info": ""
+ },
+ {
+  "name": "final error count 0",
+  "pass": true,
+  "info": ""
+ }
+]

@@ -1,0 +1,83 @@
+Unit,Unit Scholar,Unit Scholar ID,Collab Scholar,Collab Scholar ID,Co-Authored Articles,Co-Authored Books,Co-Authored Chapters,Co-Authored Conference Proceedings,Co-Authored Grants,Co-Authored Patents,Co-Authored Trials
+"Geology and Geophysics, Department of","ASHTON, ANDREW",287030,"DONNELLY, JEFFREY",287561,1,0,0,0,0,0,0
+"Geology and Geophysics, Department of","BERNHARD, JOAN",287119,"EDGCOMB, VIRGINIA",544617,2,0,0,1,1,0,0
+"Geology and Geophysics, Department of","BERNHARD, JOAN",287119,"LE ROUX, VERONIQUE",779092,1,0,0,0,2,0,0
+"Geology and Geophysics, Department of","BERNHARD, JOAN",287119,"MCCORKLE, DANIEL",288634,1,0,0,0,0,0,0
+"Geology and Geophysics, Department of","CANALES, JUAN PABLO",287223,"COLLINS, JOHN",544616,1,0,0,0,0,0,0
+"Geology and Geophysics, Department of","CANALES, JUAN PABLO",287223,"GIOSAN, LIVIU",287820,0,0,0,0,1,0,0
+"Geology and Geophysics, Department of","CANALES, JUAN PABLO",287223,"LIZARRALDE, DANIEL",288497,1,0,0,0,1,0,0
+"Geology and Geophysics, Department of","COHEN, ANNE",287363,"DONNELLY, JEFFREY",287561,0,0,0,0,1,0,0
+"Geology and Geophysics, Department of","COHEN, ANNE",287363,"HORTON, FORREST",919209,2,0,0,0,1,0,0
+"Geology and Geophysics, Department of","COHEN, ANNE",287363,"OPPO, DELIA",288857,2,0,0,0,1,0,0
+"Geology and Geophysics, Department of","DONNELLY, JEFFREY",287561,"ASHTON, ANDREW",287030,1,0,0,0,0,0,0
+"Geology and Geophysics, Department of","DONNELLY, JEFFREY",287561,"COHEN, ANNE",287363,0,0,0,0,1,0,0
+"Geology and Geophysics, Department of","DONNELLY, JEFFREY",287561,"CONDRON, ALAN",749266,1,0,0,0,0,0,0
+"Geology and Geophysics, Department of","DONNELLY, JEFFREY",287561,"EVANS, ROBERT",287680,1,0,0,0,0,0,0
+"Geology and Geophysics, Department of","DONNELLY, JEFFREY",287561,"GIOSAN, LIVIU",287820,0,0,0,0,1,0,0
+"Geology and Geophysics, Department of","EVANS, ROBERT",287680,"COLLINS, JOHN",544616,2,0,0,0,0,0,0
+"Geology and Geophysics, Department of","EVANS, ROBERT",287680,"DONNELLY, JEFFREY",287561,1,0,0,0,0,0,0
+"Geology and Geophysics, Department of","EVANS, ROBERT",287680,"LIZARRALDE, DANIEL",288497,2,0,0,0,0,0,0
+"Geology and Geophysics, Department of","EVANS, ROBERT",287680,"RYCHERT, CATHERINE",1806572,0,0,0,0,1,0,0
+"Geology and Geophysics, Department of","GAETANI, GLENN",287757,"LE ROUX, VERONIQUE",779092,1,0,0,0,1,0,0
+"Geology and Geophysics, Department of","GERMAN, CHRISTOPHER",287800,"COLLINS, JOHN",544616,0,0,0,0,1,0,0
+"Geology and Geophysics, Department of","GERMAN, CHRISTOPHER",287800,"COSTA, KASSANDRA",1304703,1,0,0,0,0,0,0
+"Geology and Geophysics, Department of","GERMAN, CHRISTOPHER",287800,"EDGCOMB, VIRGINIA",544617,2,0,0,0,0,0,0
+"Geology and Geophysics, Department of","GERMAN, CHRISTOPHER",287800,"LANG, SUSAN",779348,2,0,0,0,0,0,0
+"Geology and Geophysics, Department of","GERMAN, CHRISTOPHER",287800,"NIELSEN, SUNE",488118,1,0,0,0,1,0,0
+"Geology and Geophysics, Department of","GIOSAN, LIVIU",287820,"CANALES, JUAN PABLO",287223,0,0,0,0,1,0,0
+"Geology and Geophysics, Department of","GIOSAN, LIVIU",287820,"DONNELLY, JEFFREY",287561,0,0,0,0,1,0,0
+"Geology and Geophysics, Department of","LIZARRALDE, DANIEL",288497,"CANALES, JUAN PABLO",287223,1,0,0,0,1,0,0
+"Geology and Geophysics, Department of","LIZARRALDE, DANIEL",288497,"COLLINS, JOHN",544616,4,0,0,0,0,0,0
+"Geology and Geophysics, Department of","LIZARRALDE, DANIEL",288497,"EDGCOMB, VIRGINIA",544617,3,0,0,1,0,0,0
+"Geology and Geophysics, Department of","LIZARRALDE, DANIEL",288497,"EVANS, ROBERT",287680,2,0,0,0,0,0,0
+"Geology and Geophysics, Department of","MARCHAL, OLIVIER",288564,"CONDRON, ALAN",749266,0,0,0,0,2,0,0
+"Geology and Geophysics, Department of","MARCHAL, OLIVIER",288564,"MCCORKLE, DANIEL",288634,1,0,0,0,0,0,0
+"Geology and Geophysics, Department of","MCCORKLE, DANIEL",288634,"BERNHARD, JOAN",287119,1,0,0,0,0,0,0
+"Geology and Geophysics, Department of","MCCORKLE, DANIEL",288634,"MARCHAL, OLIVIER",288564,1,0,0,0,0,0,0
+"Geology and Geophysics, Department of","OPPO, DELIA",288857,"COHEN, ANNE",287363,2,0,0,0,1,0,0
+"Geology and Geophysics, Department of","OPPO, DELIA",288857,"COSTA, KASSANDRA",1304703,3,0,0,0,1,0,0
+"Geology and Geophysics, Department of","OPPO, DELIA",288857,"GUO, WEIFU",488111,2,0,0,0,1,0,0
+"Geology and Geophysics, Department of","OPPO, DELIA",288857,"HORTON, FORREST",919209,2,0,0,0,0,0,0
+"Geology and Geophysics, Department of","OPPO, DELIA",288857,"NIELSEN, SUNE",488118,2,0,0,0,0,0,0
+"Geology and Geophysics, Department of","TIVEY, MAURICE",289549,"TOMINAGA, MASAKO",529892,2,0,0,0,0,0,0
+"Geology and Geophysics, Department of","GUO, WEIFU",488111,"OPPO, DELIA",288857,2,0,0,0,1,0,0
+"Geology and Geophysics, Department of","NIELSEN, SUNE",488118,"COSTA, KASSANDRA",1304703,4,0,0,3,2,0,0
+"Geology and Geophysics, Department of","NIELSEN, SUNE",488118,"GERMAN, CHRISTOPHER",287800,1,0,0,0,1,0,0
+"Geology and Geophysics, Department of","NIELSEN, SUNE",488118,"HORTON, FORREST",919209,2,0,0,1,0,0,0
+"Geology and Geophysics, Department of","NIELSEN, SUNE",488118,"LE ROUX, VERONIQUE",779092,2,0,0,0,0,0,0
+"Geology and Geophysics, Department of","NIELSEN, SUNE",488118,"OPPO, DELIA",288857,2,0,0,0,0,0,0
+"Geology and Geophysics, Department of","TOMINAGA, MASAKO",529892,"TIVEY, MAURICE",289549,2,0,0,0,0,0,0
+"Geology and Geophysics, Department of","COLLINS, JOHN",544616,"CANALES, JUAN PABLO",287223,1,0,0,0,0,0,0
+"Geology and Geophysics, Department of","COLLINS, JOHN",544616,"EVANS, ROBERT",287680,2,0,0,0,0,0,0
+"Geology and Geophysics, Department of","COLLINS, JOHN",544616,"GERMAN, CHRISTOPHER",287800,0,0,0,0,1,0,0
+"Geology and Geophysics, Department of","COLLINS, JOHN",544616,"LIZARRALDE, DANIEL",288497,4,0,0,0,0,0,0
+"Geology and Geophysics, Department of","EDGCOMB, VIRGINIA",544617,"BERNHARD, JOAN",287119,2,0,0,1,1,0,0
+"Geology and Geophysics, Department of","EDGCOMB, VIRGINIA",544617,"GERMAN, CHRISTOPHER",287800,2,0,0,0,0,0,0
+"Geology and Geophysics, Department of","EDGCOMB, VIRGINIA",544617,"LANG, SUSAN",779348,1,0,0,0,0,0,0
+"Geology and Geophysics, Department of","EDGCOMB, VIRGINIA",544617,"LIZARRALDE, DANIEL",288497,3,0,0,1,0,0,0
+"Geology and Geophysics, Department of","CONDRON, ALAN",749266,"DONNELLY, JEFFREY",287561,1,0,0,0,0,0,0
+"Geology and Geophysics, Department of","CONDRON, ALAN",749266,"MARCHAL, OLIVIER",288564,0,0,0,0,2,0,0
+"Geology and Geophysics, Department of","LE ROUX, VERONIQUE",779092,"BERNHARD, JOAN",287119,1,0,0,0,2,0,0
+"Geology and Geophysics, Department of","LE ROUX, VERONIQUE",779092,"CROSS, ANDREW",1108297,0,0,0,0,1,0,0
+"Geology and Geophysics, Department of","LE ROUX, VERONIQUE",779092,"GAETANI, GLENN",287757,1,0,0,0,1,0,0
+"Geology and Geophysics, Department of","LE ROUX, VERONIQUE",779092,"HORTON, FORREST",919209,0,0,0,1,0,0,0
+"Geology and Geophysics, Department of","LE ROUX, VERONIQUE",779092,"NIELSEN, SUNE",488118,2,0,0,0,0,0,0
+"Geology and Geophysics, Department of","LANG, SUSAN",779348,"EDGCOMB, VIRGINIA",544617,1,0,0,0,0,0,0
+"Geology and Geophysics, Department of","LANG, SUSAN",779348,"GERMAN, CHRISTOPHER",287800,2,0,0,0,0,0,0
+"Geology and Geophysics, Department of","HORTON, FORREST",919209,"COHEN, ANNE",287363,2,0,0,0,1,0,0
+"Geology and Geophysics, Department of","HORTON, FORREST",919209,"LE ROUX, VERONIQUE",779092,0,0,0,1,0,0,0
+"Geology and Geophysics, Department of","HORTON, FORREST",919209,"NIELSEN, SUNE",488118,2,0,0,1,0,0,0
+"Geology and Geophysics, Department of","HORTON, FORREST",919209,"OPPO, DELIA",288857,2,0,0,0,0,0,0
+"Geology and Geophysics, Department of","WU, WENBO",1024509,"RYCHERT, CATHERINE",1806572,1,0,0,0,0,0,0
+"Geology and Geophysics, Department of","CROSS, ANDREW",1108297,"LE ROUX, VERONIQUE",779092,0,0,0,0,1,0,0
+"Geology and Geophysics, Department of","COSTA, KASSANDRA",1304703,"GERMAN, CHRISTOPHER",287800,1,0,0,0,0,0,0
+"Geology and Geophysics, Department of","COSTA, KASSANDRA",1304703,"NIELSEN, SUNE",488118,4,0,0,3,2,0,0
+"Geology and Geophysics, Department of","COSTA, KASSANDRA",1304703,"OPPO, DELIA",288857,3,0,0,0,1,0,0
+"Geology and Geophysics, Department of","RYCHERT, CATHERINE",1806572,"EVANS, ROBERT",287680,0,0,0,0,1,0,0
+"Geology and Geophysics, Department of","RYCHERT, CATHERINE",1806572,"WU, WENBO",1024509,1,0,0,0,0,0,0
+"Geology and Geophysics, Department of","DAS, SARAH",287448,,,,,,,,,
+"Geology and Geophysics, Department of","LIAO, YANG",919210,,,,,,,,,
+"Geology and Geophysics, Department of","ROBERTS, MARK",919211,,,,,,,,,
+"Geology and Geophysics, Department of","SCHACKLETON, SARAH",2157266,,,,,,,,,
+"Geology and Geophysics, Department of","SIBERT, ELIZABETH",2157267,,,,,,,,,
+"Geology and Geophysics, Department of","SOHN, ROBERT",370221,,,,,,,,,

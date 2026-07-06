@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MIT Collaboration Report — Key &amp; Documentation (AAD2024)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Text:wght@600;700&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root{--navy:#254467;--ink:#052448;--bg:#f3f5f9;--card:#fff;--muted:#5a6a8a;--accent:#0066b4;
+      --border:#d0d8e8;--line:#e2e5ea;--within:#1f7a4d;--across:#9a6a00;--inter:#7a4ac6;--sidebar-w:230px;}
+html{scroll-behavior:smooth}
+body{font:15px/1.7 'Open Sans',-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:#1c2330;
+     display:flex;flex-direction:column;min-height:100vh}
+.aa-nav{background:#052448;padding:7px 20px;display:flex;gap:18px;
+  font:12px 'Open Sans',-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;flex-shrink:0}
+.aa-nav a{color:rgba(255,255,255,.7);text-decoration:none;font-weight:600;letter-spacing:.02em;
+  padding:3px 2px;border-bottom:2px solid transparent}
+.aa-nav a:hover{color:#fff}
+.aa-nav a.cur{color:#fff;border-bottom-color:#0066b4}
+header.doc{background:var(--navy);color:#fff;padding:0 28px;display:flex;align-items:center;gap:16px;height:54px;
+  position:sticky;top:0;z-index:100}
+header.doc .site-title{font-family:'Crimson Text',serif;font-size:17px;font-weight:700}
+header.doc .divider{width:1px;height:26px;background:rgba(255,255,255,.25)}
+header.doc .page-label{font-size:12.5px;color:rgba(255,255,255,.75)}
+.layout{display:flex;flex:1;align-items:flex-start}
+aside{width:var(--sidebar-w);min-width:var(--sidebar-w);position:sticky;top:54px;height:calc(100vh - 54px);
+  overflow-y:auto;background:var(--card);border-right:1px solid var(--border);padding:20px 0 40px}
+.toc-heading{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:0 18px 10px}
+.toc-list{list-style:none}
+.toc-list li a{display:block;padding:5px 18px;font-size:13px;color:var(--muted);text-decoration:none;
+  border-left:3px solid transparent;transition:color .15s,border-color .15s,background .15s}
+.toc-list li a:hover{color:var(--navy);background:#eef2f8}
+.toc-list li.active > a{color:var(--navy);font-weight:600;border-left-color:var(--accent);background:#eef2f8}
+.toc-sub{list-style:none}
+.toc-sub li a{padding-left:34px;font-size:12.5px}
+main{flex:1;min-width:0;max-width:880px;padding:30px 40px 80px}
+.page-title{font-family:'Crimson Text',serif;font-size:26px;font-weight:700;color:var(--ink);margin-bottom:6px}
+.page-intro{color:var(--muted);margin-bottom:28px}
+.section{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:24px 28px;margin-bottom:24px}
+.section-heading{font-family:'Crimson Text',serif;font-size:20px;font-weight:700;color:var(--ink);margin-bottom:14px;
+  display:flex;align-items:center;gap:10px}
+.sec-num{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:28px;border-radius:6px;
+  background:var(--navy);color:#fff;font:700 14px 'Open Sans',sans-serif}
+.sub-heading{font-size:14.5px;font-weight:700;color:var(--ink);margin:18px 0 8px;border-bottom:1px solid var(--line);padding-bottom:4px}
+.section p{margin:0 0 12px}
+.section ul{margin:0 0 12px 22px}
+.section li{margin-bottom:4px}
+.callout{border-left:4px solid var(--accent);background:#eef4fa;padding:12px 16px;margin:14px 0;font-size:13.5px}
+.callout .callout-label{font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--accent);margin-bottom:4px}
+.callout.warn{border-left-color:var(--across);background:#faf5e9}
+.callout.warn .callout-label{color:var(--across)}
+table.key{border-collapse:collapse;width:100%;background:var(--card);font-size:12.5px;margin:10px 0 16px}
+table.key th{text-align:left;font-size:11px;font-weight:700;color:var(--ink);padding:7px 10px;
+  border-bottom:3px solid var(--navy)}
+table.key td{padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+table.key tr:last-child td{border-bottom:2px solid var(--navy)}
+table.key td.col{font-weight:600;white-space:nowrap;width:180px}
+table.key .sub{display:block;color:var(--muted);line-height:1.7}
+table.key .subv{display:block;line-height:1.7}
+.pill{display:inline-block;font-size:10px;font-weight:700;padding:1px 7px;border-radius:9px;color:#fff;margin-right:6px}
+.pill.within{background:var(--within)} .pill.across{background:var(--across)} .pill.inter{background:var(--inter)}
+.tw{background:var(--card);border:1px solid #c9d2dd;padding:16px 18px;margin:14px 0;max-width:460px}
+.tw h3{font-size:14px;font-weight:700;color:#333;margin-bottom:10px}
+.tw table{border-collapse:collapse;width:100%;font-size:13px}
+.tw td{border:2px solid #fff;padding:4px 10px}
+.tw td.k{background:#1c95d4;color:#fff;font-weight:600}
+.tw td.v{background:#1c95d4;color:#fff;width:120px}
+.tw .fn{font-size:11px;color:#333;margin-top:9px;line-height:1.45}
+code{font:12px Consolas,Menlo,monospace;background:#eef2f8;padding:1px 5px;border-radius:4px}
+footer{padding:12px 20px;color:var(--muted);font-size:11px;border-top:1px solid var(--border);background:var(--card)}
+</style>
+</head>
+<body>
+<div class="aa-nav">
+  <a href="key.html" class="cur">Key</a>
+  <a href="details_table.html">Details</a>
+  <a href="counts_table.html">Counts (Partners)</a>
+  <a href="counts_simple.html">Counts (Simple)</a>
+  <a href="network_viz.html">Network</a>
+  <a href="chord_viz.html">Chord</a>
+  <a href="matrix_viz.html">Matrix</a>
+  <a href="insights.html">Insights</a>
+</div>
+<header class="doc">
+  <span class="site-title">MIT Collaboration Report — AAD2024</span>
+  <div class="divider"></div>
+  <span class="page-label">Documentation &amp; Key</span>
+</header>
+
+<div class="layout">
+<aside>
+  <div class="toc-heading">Contents</div>
+  <ul class="toc-list">
+    <li class="parent"><a href="#overview">1. Overview</a></li>
+    <li class="parent"><a href="#core-concepts">2. Core concepts</a></li>
+    <ul class="toc-sub">
+      <li><a href="#unit-type">2a. Unit Type &amp; anchors</a></li>
+      <li><a href="#scope">2b. Scope &amp; relationship</a></li>
+      <li><a href="#works-vs-pairs">2c. Works vs. partner-summed counts</a></li>
+      <li><a href="#caps">2d. Caps: Top N &amp; max collaborators</a></li>
+      <li><a href="#time-windows">2e. Default time windows</a></li>
+    </ul>
+    <li class="parent"><a href="#details">3. Details</a></li>
+    <ul class="toc-sub">
+      <li><a href="#details-columns">3a. Column key</a></li>
+      <li><a href="#details-filters">3b. Filters</a></li>
+      <li><a href="#details-unique">3c. One row per work</a></li>
+    </ul>
+    <li class="parent"><a href="#counts-partners">4. Counts (Partners)</a></li>
+    <li class="parent"><a href="#counts-simple">5. Counts (Simple)</a></li>
+    <li class="parent"><a href="#network">6. Network</a></li>
+    <li class="parent"><a href="#chord">7. Chord</a></li>
+    <li class="parent"><a href="#matrix">8. Matrix</a></li>
+    <li class="parent"><a href="#insights">9. Insights</a></li>
+  </ul>
+</aside>
+
+<main>
+<h1 class="page-title">MIT Collaboration Report — Key &amp; Documentation</h1>
+<p class="page-intro">Reference for every page, column, filter, and counting rule in this report. Use the sidebar to jump to any section.</p>
+
+<section class="section" id="overview">
+<h2 class="section-heading"><span class="sec-num">1</span>Overview</h2>
+<p>This report explores co-authorship and co-investigator relationships at the <strong>Massachusetts Institute of Technology</strong>, built from the Academic Analytics comparative database <strong>AAD2024-2904</strong>. It covers roughly 1,270 MIT scholars and 16,700 distinct works across seven collaboration types.</p>
+<p>Seven interactive pages share one navigation bar. Each offers a different lens on the same underlying data:</p>
+<ul>
+  <li><strong>Details</strong> — work-grain table: one row per faculty &times; work &times; collaborator, with a one-row-per-work option.</li>
+  <li><strong>Counts (Partners)</strong> — partner-grain totals per anchor unit, in the portal&rsquo;s partner-summed convention.</li>
+  <li><strong>Counts (Simple)</strong> — distinct-works totals per college/school, department, or person.</li>
+  <li><strong>Network</strong> — force-directed graph of people, anchored units, departments, or colleges/schools.</li>
+  <li><strong>Chord</strong> — college/school-level flows, plus an anchored partner view.</li>
+  <li><strong>Matrix</strong> — unit &times; unit heat map of shared distinct works by collaboration type.</li>
+  <li><strong>Insights</strong> — degree and betweenness centrality rankings for scholars and departments.</li>
+</ul>
+</section>
+
+<section class="section" id="core-concepts">
+<h2 class="section-heading"><span class="sec-num">2</span>Core concepts</h2>
+
+<h3 class="sub-heading" id="unit-type">2a. Unit Type &amp; anchors</h3>
+<p>MIT units come in three types: <strong>Department</strong>, <strong>Program</strong>, and <strong>Medical</strong>. Some share a name across types — e.g. the <em>Architecture</em> Program is a different unit from <em>Architecture, Department of</em>. The <strong>Unit Type</strong> picker controls which units anchor the current view:</p>
+<ul>
+  <li><strong>Department</strong> — department-anchored; Department columns shown, Program columns hidden.</li>
+  <li><strong>Program</strong> — program-anchored; Program(s) columns shown, Department columns hidden.</li>
+  <li><strong>All</strong> — both, in separate columns.</li>
+  <li><strong>Medical</strong> units are always included in the loaded data; the Medical column appears in Medical or All mode.</li>
+</ul>
+<p>An <strong>anchor</strong> is the unit whose scholars a view is centered on. A person affiliated with several units counts as a member of whichever unit is anchored — a joint Physics/Math person is &ldquo;a Physics person&rdquo; when Physics is selected.</p>
+
+<h3 class="sub-heading" id="scope">2b. Scope &amp; relationship</h3>
+<p>Every faculty&ndash;collaborator pair has one relationship, always relative to the anchored unit:</p>
+<p><span class="pill within">within</span> the collaborator shares the anchor unit itself<br>
+<span class="pill across">across</span> the collaborator is in a different MIT unit<br>
+<span class="pill inter">inter</span> the collaborator is external to MIT</p>
+<p>The <strong>Scope</strong> control filters by relationship: Within Unit, Across Units, Intra (within + across, i.e. all-MIT), Across Institutions, or All.</p>
+<div class="callout warn"><div class="callout-label">Multi-affiliation rule</div>
+<p>A collaborator with several affiliations takes their <em>most specific</em> relationship — within beats across beats inter. If any of their units matches the anchor, they are <em>within</em>, full stop. This rule is applied identically on every page.</p></div>
+
+<h3 class="sub-heading" id="works-vs-pairs">2c. Works vs. partner-summed counts</h3>
+<p>Two counting conventions appear in this report, and both are correct under their stated definitions:</p>
+<ul>
+  <li><strong>Distinct works</strong> — each work counted once (Details, Counts (Simple), Matrix). Physics across-units: <strong>192</strong>.</li>
+  <li><strong>Partner-summed works</strong> — works summed over partner units, so a work shared with three partner units counts three times (Counts (Partners), Chord anchored view; the portal&rsquo;s convention). Physics across-units: <strong>231</strong>.</li>
+</ul>
+<div class="callout warn"><div class="callout-label">Never sum rows</div>
+<p>The Details grain is one row per faculty &times; work &times; collaborator — summing rows massively overcounts works. Use the distinct-works figure in the status bar, or the counts pages.</p></div>
+
+<h3 class="sub-heading" id="caps">2d. Caps: Top N &amp; max collaborators</h3>
+<p><strong>Max collaborators / cap authors per work</strong> hides very large consortium works (some physics collaborations run to thousands of authors); available caps are 20 / 50 / 100 / no limit. <strong>Top N</strong> limits how many anchor scholars or partners a visualization draws, keeping the highest-degree ones; a badge reports how many were hidden.</p>
+
+<h3 class="sub-heading" id="time-windows">2e. Default time windows</h3>
+<div class="tw">
+<h3>AAD 2024 Comparative Database Default Time Windows</h3>
+<table>
+<tr><td class="k">Articles</td><td class="v">2021 - 2024</td></tr>
+<tr><td class="k">Citations*:</td><td class="v">2020 - 2024</td></tr>
+<tr><td class="k">Conference Proceedings:</td><td class="v">2021 - 2024</td></tr>
+<tr><td class="k">Books:</td><td class="v">2015 - 2024</td></tr>
+<tr><td class="k">Book Chapters:</td><td class="v">2021 - 2024</td></tr>
+<tr><td class="k">Awards:</td><td class="v">Varies by Award</td></tr>
+<tr><td class="k">Grants and Active Grant Dollars:</td><td class="v">2020 - 2024</td></tr>
+<tr><td class="k">Clinical Trials:</td><td class="v">2020 - 2024</td></tr>
+<tr><td class="k">Patents:</td><td class="v">2015 - 2024</td></tr>
+</table>
+<div class="fn">* Citations data are reported for articles and conference proceedings published within the citations time window, not for citations made within the time window to any past publication.</div>
+<div class="fn">The Year column for Federal Grants and Clinical Trials shows the start year, which can predate the window — the window reflects activity during 2020&ndash;2024.</div>
+</div>
+</section>
+
+<section class="section" id="details">
+<h2 class="section-heading"><span class="sec-num">3</span>Details</h2>
+<p>The work-grain report: one row per <strong>faculty &times; work &times; collaborator</strong>. Every faculty and collaborator name links to that person in the Network page. The status bar always shows the distinct-works total for the current filters.</p>
+
+<h3 class="sub-heading" id="details-columns">3a. Column key</h3>
+<table class="key">
+<tr><th>Column Name</th><th>Type</th><th>Definition</th></tr>
+<tr><td class="col">Faculty Name</td><td></td><td>MIT faculty member (anchored scholar).</td></tr>
+<tr><td class="col">Department / Program(s) / Medical</td><td></td><td>The faculty member&rsquo;s unit affiliation(s), split by unit type into separate columns. Each column appears only when the Unit Type mode includes its type (All shows all three), and each can be toggled in the Faculty/Collab column panels.</td></tr>
+<tr><td class="col">College/School / Discipline / Broad Field</td><td></td><td>Further faculty affiliations; multiple values join in one cell (or expand to one row per value when Concat is off).</td></tr>
+<tr><td class="col">Works</td><td></td><td>Distinct works for that faculty member under the current filters.</td></tr>
+<tr><td class="col">Collaboration Type</td><td></td><td>Articles, Conference Proceedings, Books, Book Chapters, Federal Grants, Patents, Clinical Trials</td></tr>
+<tr><td class="col">Year</td>
+  <td><span class="sub">Articles/Conference Proceedings</span><span class="sub">Books / Book Chapters</span><span class="sub">Federal Grants</span><span class="sub">Patents</span><span class="sub">Clinical Trials</span></td>
+  <td><span class="subv">Publication Year</span><span class="subv">Publication Year</span><span class="subv">Start Year</span><span class="subv">Patent Granted Year</span><span class="subv">Start Year</span></td></tr>
+<tr><td class="col">Collab ID</td>
+  <td><span class="sub">Articles/Conference Proceedings</span><span class="sub">Books</span><span class="sub">Book Chapters</span><span class="sub">Federal Grants</span><span class="sub">Patents</span><span class="sub">Clinical Trials</span></td>
+  <td><span class="subv">DOI</span><span class="subv">ISBN13</span><span class="subv">ChapterListId</span><span class="subv">Grant ID</span><span class="subv">Patent Number</span><span class="subv">NCT ID</span></td></tr>
+<tr><td class="col">Collab Detail</td>
+  <td><span class="sub">Articles/Conference Proceedings</span><span class="sub">Books</span><span class="sub">Book Chapters</span><span class="sub">Federal Grants</span><span class="sub">Patents</span><span class="sub">Clinical Trials</span></td>
+  <td><span class="subv">Journal Name [ISSN] / Conference</span><span class="subv">Publisher</span><span class="subv">Book Title</span><span class="subv">Agency Name (abbr.)</span><span class="subv">Patent Type</span><span class="subv">Use Type (Utility)</span></td></tr>
+<tr><td class="col">Collab Title</td>
+  <td><span class="sub">Articles/Conference Proceedings</span><span class="sub">Books</span><span class="sub">Book Chapters</span><span class="sub">Federal Grants</span><span class="sub">Patents</span><span class="sub">Clinical Trials</span></td>
+  <td><span class="subv">Article/Proceeding Title</span><span class="subv">Book Title</span><span class="subv">Chapter Title</span><span class="subv">Grant Name</span><span class="subv">Patent Title</span><span class="subv">Brief Title</span></td></tr>
+<tr><td class="col">Collab Institution</td><td></td><td>The collaborating person&rsquo;s institution; Massachusetts Institute of Technology for internal collaborators.</td></tr>
+<tr><td class="col">Collab Faculty Name</td><td></td><td>The collaborating person, with their relationship pill.</td></tr>
+<tr><td class="col">Collab Department(s) / Program(s) / Medical / Discipline</td><td></td><td>Each affiliation listed individually, split by unit type like the faculty side. For external collaborators these are units at their <em>own</em> institution (another university&rsquo;s department can share an MIT unit&rsquo;s name) and all appear in the Department(s) column.</td></tr>
+</table>
+
+<h3 class="sub-heading" id="details-filters">3b. Filters</h3>
+<ul>
+  <li><strong>Unit Type</strong> — see <a href="#unit-type">2a</a>; also drives which unit columns appear.</li>
+  <li><strong>Select College/School &rarr; Select Department(s)</strong> — cascading: choosing a college/school narrows the unit list.</li>
+  <li><strong>Select Discipline(s) / Select Collab Discipline(s)</strong> — restrict by faculty-side or collaborator-side discipline.</li>
+  <li><strong>Scope</strong> — see <a href="#scope">2b</a>.</li>
+  <li><strong>Interdisciplinary</strong> — Yes keeps rows where faculty and collaborator disciplines differ.</li>
+  <li><strong>Search / Year range / Detail contains / Max collaborators per work</strong> — free filters.</li>
+  <li><strong>Faculty &amp; Collab column panels</strong> — Show toggles add optional columns; Concat joins multiple values into one cell vs. one row per value.</li>
+  <li><strong>Clear Filters</strong> resets everything; <strong>Download Data (CSV)</strong> exports all filtered rows (not just the visible page) with the on-screen columns.</li>
+</ul>
+
+<h3 class="sub-heading" id="details-unique">3c. One row per work</h3>
+<p>Collapses the table to one row per distinct work. Filters choose <em>which works qualify</em>; each qualifying work then lists its <strong>complete roster</strong> — every person exactly once, MIT collaborators and external collaborators in separate columns, MIT faculty first. Long lists show the first 10 people with an expandable &ldquo;+ N more&rdquo;. Each person shows their unit(s) beneath their name (per the Unit Type mode) and full affiliations in a hover tooltip. Relationship pills appear only when a unit is selected in the Department filter — they are meaningless without a reference unit.</p>
+</section>
+
+<section class="section" id="counts-partners">
+<h2 class="section-heading"><span class="sec-num">4</span>Counts (Partners)</h2>
+<p>Partner-grain totals for one anchored unit: one row per partner (unit or institution) with works and person-pairs, plus summary cards for Within / Across / Intra / Inter. Uses the <strong>partner-summed</strong> convention (<a href="#works-vs-pairs">2c</a>) — matching the AA portal (Physics across = 231). A Person view re-cuts the same data per anchored scholar, with discipline filters on both sides, an interdisciplinary-only toggle, and CSV export.</p>
+</section>
+
+<section class="section" id="counts-simple">
+<h2 class="section-heading"><span class="sec-num">5</span>Counts (Simple)</h2>
+<p>Honest <strong>distinct-works</strong> totals — no pairs model. One row per entity at the selected level (College / School, Department, or Person; institution totals as fixed cards), with five columns: Within, Across, Inter, Intra, All. Each cell counts each work once (Physics across = 192; MIT all = 16,738). Use this page when you need totals that add up work-for-work.</p>
+</section>
+
+<section class="section" id="network">
+<h2 class="section-heading"><span class="sec-num">6</span>Network</h2>
+<p>Force-directed collaboration graph with four levels, ordered big to small: <strong>College / School</strong>, <strong>Department</strong>, <strong>Anchor</strong> (one unit and its partner units), and <strong>Person</strong> (anchored scholars and their individual collaborators).</p>
+<ul>
+  <li><strong>Node color</strong> — faculty rank at Person level (legend on-page); school colors at the global levels. <strong>Node size</strong> scales with works/degree. A thick border marks the selected unit&rsquo;s scholars.</li>
+  <li><strong>Edge color</strong> — relationship: green within, gold across MIT, purple external.</li>
+  <li><strong>Interaction</strong> — hover for a tooltip; click a node for a detail panel with works by collaboration type; scroll to zoom; drag to pan; Fit view resets.</li>
+  <li><strong>Controls</strong> — Unit Type, Anchor unit, Scope (default All), Top N nodes, cap authors/work.</li>
+</ul>
+<div class="callout info"><div class="callout-label">Cross-links</div>
+<p>Faculty and collaborator names on the Details page deep-link here (<code>?pid=&hellip;&amp;anchor=&hellip;&amp;scope=&hellip;</code>): the page opens on the right anchor and scope, selects the person, and opens their panel. The linked person is always drawn, even past the Top N cap.</p></div>
+</section>
+
+<section class="section" id="chord">
+<h2 class="section-heading"><span class="sec-num">7</span>Chord</h2>
+<p>Two modes. <strong>College / School Overview</strong> draws MIT&rsquo;s seven colleges/schools as arcs, with ribbon thickness proportional to the distinct works shared between each pair of schools (same pair-based definition as the Matrix). <strong>Anchored View</strong> centers one unit and fans out its partners, using the partner-summed convention of Counts (Partners). Hover a ribbon or arc to isolate it; Top N and author-cap controls apply in anchored mode.</p>
+</section>
+
+<section class="section" id="matrix">
+<h2 class="section-heading"><span class="sec-num">8</span>Matrix</h2>
+<p>Unit &times; unit heat map. Each cell counts <strong>distinct works</strong> with at least one distinct-person pair connecting the two units (MIT-side collaborators only); the diagonal is a unit&rsquo;s within-unit works. Cells can be filtered to a single collaboration type, capped by authors per work, viewed at Department/Program or College / School level, and sorted by total or alphabetically.</p>
+<div class="callout warn"><div class="callout-label">Cells are not additive</div>
+<p>A work connecting three units appears in all three pairwise cells — summing cells overcounts. Use Counts (Simple) for additive totals.</p></div>
+</section>
+
+<section class="section" id="insights">
+<h2 class="section-heading"><span class="sec-num">9</span>Insights</h2>
+<p>Connector rankings computed on the person-level collaboration graph: <strong>Degree Centrality</strong> (distinct collaborators; a degree-cap toggle recomputes under author caps), <strong>Betweenness Centrality</strong> (how often a scholar sits on shortest paths between others — bridge-builders), and a <strong>Departments</strong> roll-up. Filter by department, choose how many rows to show, and click a scholar for their profile and top co-authors.</p>
+<div class="callout info"><div class="callout-label">Status note</div>
+<p>Overview totals on this page (1,270 scholars; 16,738 works) are validated; individual centrality values derive from the validated person graph but have not been independently recomputed.</p></div>
+</section>
+
+</main>
+</div>
+<footer>Source: <code>details_base.csv</code> (SAS extract) &middot; AAD2024-2904 &middot; MIT</footer>
+
+<script>
+(function () {
+  const links = document.querySelectorAll('.toc-list a');
+  const sections = Array.from(document.querySelectorAll('section[id], h3[id]'));
+  function currentId() {
+    const y = window.scrollY + 90;
+    let cur = null;
+    for (const s of sections) if (s.offsetTop <= y) cur = s.id;
+    return cur;
+  }
+  function update() {
+    const id = currentId();
+    links.forEach(a => a.parentElement.classList.toggle('active', a.getAttribute('href') === '#' + id));
+  }
+  window.addEventListener('scroll', update, { passive: true });
+  update();
+})();
+</script>
+</body>
+</html>

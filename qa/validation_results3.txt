@@ -1,0 +1,11 @@
+CHECK 6 matrix Department cells: checked 270 mismatch 0 
+CHECK 6 matrix Program cells: checked 453 mismatch 0 
+CHECK 6 matrix college cells: checked 28 mismatch 10
+counts_simple keys: ['department', 'college', 'person', 'institution']
+CHECK 7 counts_simple departments (Department tab): exact 28 | small diff(<=3) 6 | larger 1 | unmatched 0 [('Institute for Medical Engineer', (154, 354, 1304, 489, 1471), (153, 352, 1308, 486, 1475))]
+CHECK 7 counts_simple colleges (Department tab): exact 1 | small diff(<=3) 0 | larger 6 | unmatched 0 [('Science, School of', (1508, 898, 6381, 2259, 7091), (1413, 1105, 6381, 2259, 7091)), ('Engineering, School of', (1347, 1054, 5443, 2264, 6608), (1600, 2013, 7130, 2903, 8668)), ('Computing, Schwarzman College ', (767, 834, 3171, 1515, 3908), (715, 974, 3171, 1514, 3909))]
+CHECK 7 counts_simple persons (Department tab, all 1270): exact 1088 | small diff(<=3) 98 | larger 84 | unmatched 0 [('LANGER, ROBERT S', (189, 20, 246, 200, 305), (188, 199, 246, 199, 305)), ('SEAGER, SARA', (80, 1, 282, 80, 288), (80, 80, 282, 80, 288)), ('WILLIAMS, MICHAEL', (185, 1, 194, 186, 196), (185, 185, 194, 186, 196))]
+CHECK 6b matrix college cells (mode-correct): checked 27 mismatch 0 
+CHECK 6c chord global college matrix: checked 27 mismatch 0
+CHECK 8 insights degree (top-80) vs SAS distinct collaborators: exact 78 mismatch 2 [('CELI, LEO ANTHONY ', 285, 268), ('LANGER, ROBERT S', 204, 200)]
+CHECK 8 overview: works 16738 vs SAS 16747 | scholars 1270
