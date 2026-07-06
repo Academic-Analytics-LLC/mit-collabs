@@ -1,5 +1,15 @@
 sas/details_base.csv
 sas/*_rows.csv
 sas/*_payload*.json
-data/
 *.checkpoint.pkl
+portal_oracle/
+.claude/
+
+# College-level (kind="college") rollup files in data/details/ are not fetched by
+# details_table.html (it only loads kind="unit" department/program files); excluding
+# them removes ~165MB of dead weight, and one (CScience__School_of.json, 127MB)
+# exceeds GitHub's 100MB single-file limit anyway.
+data/details/C*.json
+# stray build temp files that sometimes land next to the real JSON
+data/details/.*
+data/details/*.tmp
