@@ -22,7 +22,7 @@ body{font:15px/1.7 'Open Sans',-apple-system,'Segoe UI',Roboto,Helvetica,Arial,s
 .aa-nav a.cur{color:#fff;border-bottom-color:#0066b4}
 header.doc{background:var(--navy);color:#fff;padding:0 28px;display:flex;align-items:center;gap:16px;height:54px;
   position:sticky;top:0;z-index:100}
-header.doc .site-title{font-family:'Crimson Text',serif;font-size:17px;font-weight:700}
+header.doc .site-title{font-family:'Crimson Text',serif;font-size:17px;font-weight:700;font-variant-numeric:lining-nums}
 header.doc .divider{width:1px;height:26px;background:rgba(255,255,255,.25)}
 header.doc .page-label{font-size:12.5px;color:rgba(255,255,255,.75)}
 .layout{display:flex;flex:1;align-items:flex-start}
@@ -124,10 +124,10 @@ footer{padding:12px 20px;color:var(--muted);font-size:11px;border-top:1px solid 
 
 <section class="section" id="overview">
 <h2 class="section-heading"><span class="sec-num">1</span>Overview</h2>
-<p>This report explores co-authorship and co-investigator relationships at the <strong>Massachusetts Institute of Technology</strong>, built from the Academic Analytics comparative database <strong>AAD2024-2904</strong>. It covers roughly 1,270 MIT scholars and 16,700 distinct works across seven collaboration types.</p>
+<p>This report explores the collaborative relationships across units &mdash; both within and external to the <strong>Massachusetts Institute of Technology</strong> &mdash; built from the Academic Analytics comparative database <strong>AAD2024-2904</strong>. It covers roughly 1,270 MIT scholars and 16,700 distinct works across seven collaboration types.</p>
 <p>Seven interactive pages share one navigation bar. Each offers a different lens on the same underlying data:</p>
 <ul>
-  <li><strong>Details</strong> — work-grain table: one row per faculty &times; work &times; collaborator, with a one-row-per-work option.</li>
+  <li><strong>Details</strong> — a detailed view of the entire dataset, with columns that can be shown concatenated or split into separate rows, and a one-row-per-work option for viewing each work's full collaborator roster.</li>
   <li><strong>Counts (Partners)</strong> — partner-grain totals per anchor unit, in the portal&rsquo;s partner-summed convention.</li>
   <li><strong>Counts (Simple)</strong> — distinct-works totals per college/school, department, or person.</li>
   <li><strong>Network</strong> — force-directed graph of people, anchored units, departments, or colleges/schools.</li>
@@ -141,7 +141,7 @@ footer{padding:12px 20px;color:var(--muted);font-size:11px;border-top:1px solid 
 <h2 class="section-heading"><span class="sec-num">2</span>Core concepts</h2>
 
 <h3 class="sub-heading" id="unit-type">2a. Unit Type &amp; anchors</h3>
-<p>MIT units come in three types: <strong>Department</strong>, <strong>Program</strong>, and <strong>Medical</strong>. Some share a name across types — e.g. the <em>Architecture</em> Program is a different unit from <em>Architecture, Department of</em>. The <strong>Unit Type</strong> picker controls which units anchor the current view:</p>
+<p>All three unit types are shown: <strong>Department</strong>, <strong>Program</strong>, and <strong>Medical</strong>. The <strong>Unit Type</strong> picker controls which units &ldquo;anchor&rdquo; the current view. Some share a name across types — e.g. the <em>Architecture</em> Program is a different unit from <em>Architecture, Department of</em>.</p>
 <ul>
   <li><strong>Department</strong> — department-anchored; Department columns shown, Program columns hidden.</li>
   <li><strong>Program</strong> — program-anchored; Program(s) columns shown, Department columns hidden.</li>

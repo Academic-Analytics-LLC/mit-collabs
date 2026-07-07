@@ -99,7 +99,9 @@ svg#chord{overflow:visible}
       <select id="anchor"></select>
     </div>
     <div class="ctl" id="topNCtl" style="display:none"><label>Top N partners</label>
-      <input type="number" id="topN" min="1" value="25" placeholder="all"></div>
+      <input type="number" id="topN" min="1" value="25" placeholder="all">
+      <div class="cap-hint"></div>
+    </div>
     <div class="ctl"><label>Max co-authors per work</label>
       <input type="number" id="capN" min="1" placeholder="no limit">
       <div class="cap-hint" id="capHint"></div>
@@ -477,7 +479,7 @@ function fillAnchors(){
   const grp=(n,it)=>it.length?`<optgroup label="${n}">`+it.map(a=>`<option value="${a.key}">${esc(a.label)}</option>`).join('')+`</optgroup>`:'';
   sel.innerHTML=grp('Departments',units)+grp('Colleges / Schools',cols);
   let pick=D.anchors.find(a=>a.key===prev&&a.unit_kind===uk)?prev:null;
-  if(!pick){const ph=units.find(a=>/^physics,/i.test(a.label))||units.find(a=>/physics/i.test(a.label));pick=ph?ph.key:((units[0]||cols[0]||{}).key);}
+  if(!pick){pick=(units[0]||cols[0]||{}).key;}
   sel.value=pick;
 }
 

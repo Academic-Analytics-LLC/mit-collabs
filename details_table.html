@@ -266,7 +266,7 @@ let mode = "Department"; // "Department" | "Program" | "Medical" | "All"
 let anchorsIndex = [];
 let cur = null; // merged payload for ALL units matching current Unit Type: {strs, people, works, rows_by_work, _totalUnits, _collegeToDepts}
 const modeCache = new Map(); // Unit Type -> merged payload, so toggling back is instant
-const sortState = {k: "swork", d: -1};
+const sortState = {k: "sName", d: 1};
 let curPage = 1; // on-screen pagination - CSV export always covers every row regardless of page
 const $ = id => document.getElementById(id);
 const esc = s => (s == null ? "" : ("" + s)).replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
@@ -355,7 +355,7 @@ async function loadMode() {
       $("statusText").textContent = `Loading ${MODE_LABEL[mode]}… (${Math.min(done, files.length)}/${files.length} units)`;
     }
     const groups = groupRows(allRows);
-    cur = { rows: allRows, works, collegeToDepts, groups, _totalUnits: files.length };
+    cur = { rows: allRows, works, collegeToDepts, groups, workPersonCount: computeWorkPersonCounts(groups), _totalUnits: files.length };
     modeCache.set(mode, cur);
     afterLoad();
   } catch (err) {
@@ -407,6 +407,23 @@ function groupRows(rows) {
     if (r.cInst) g.cInst = r.cInst;
   }
   return [...map.values()];
+}
+
+// Total distinct people (scholars + collaborators, MIT + external) on each work, from the
+// COMPLETE unfiltered roster (same "full roster regardless of current filters" principle as
+// the Unique-Works view) -- so "Total Collaborators" on a row means everyone else on that
+// specific paper, not a count that shrinks when Scope/type/discipline filters are applied.
+function computeWorkPersonCounts(groups) {
+  const byWid = new Map();
+  for (const g of groups) {
+    if (!byWid.has(g.wid)) byWid.set(g.wid, new Set());
+    const s = byWid.get(g.wid);
+    s.add(g.sp);
+    s.add(g.cp);
+  }
+  const counts = new Map();
+  for (const [wid, set] of byWid) counts.set(wid, set.size);
+  return counts;
 }
 
 // ===== Filter state readers =====
@@ -497,8 +514,6 @@ function buildDisplayRows() {
 
   const rowsOut = [];
   const distinctWorkIds = new Set();
-  const scholarWorkSets = new Map(); // sp -> Set(wid) among qualifying rows, for the "Works" column
-
   const passing = [];
   for (const [wid, groups] of byWork) {
     const collabCount = groups.length;
@@ -509,8 +524,6 @@ function buildDisplayRows() {
   }
   for (const g of passing) {
     distinctWorkIds.add(g.wid);
-    if (!scholarWorkSets.has(g.sp)) scholarWorkSets.set(g.sp, new Set());
-    scholarWorkSets.get(g.sp).add(g.wid);
   }
 
   const cols = f.cols;
@@ -522,7 +535,7 @@ function buildDisplayRows() {
       wid: g.wid, title: w[0], workType: w[1], year: w[2], detail: w[3],
       cp: g.cp, cName: g.cName, rel: g.rel, cInst: g.cInst,
       cInstD: g.cInst || (g.rel < 2 ? "Massachusetts Institute of Technology" : ""),
-      swork: scholarWorkSets.get(g.sp).size,
+      totalCollab: (cur.workPersonCount.get(g.wid) || 1) - 1,
     };
     // explode fields whose Concat toggle is off; concat=on fields join into one string
     const sVariants = {
@@ -666,7 +679,7 @@ function render() {
     showProgCol && cols0.schol.prog && cols0.schol.prog.show && { k: "sProg", label: "Program(s)" },
     showMedCol && cols0.schol.medc && cols0.schol.medc.show && { k: "sMedC", label: "Medical" },
     cols0.schol.disc && cols0.schol.disc.show && { k: "sDisc", label: "Discipline" },
-    { k: "swork", label: "Works" },
+    { k: "totalCollab", label: "Total Collaborators" },
     { k: "workType", label: "Collaboration Type" },
     { k: "year", label: "Year" },
     { k: "wid", label: "Collab ID" },
@@ -689,7 +702,10 @@ function render() {
     if (typeof av === "string") { av = av.toLowerCase(); bv = ("" + bv).toLowerCase(); }
     if (av < bv) return -sortState.d;
     if (av > bv) return sortState.d;
-    return b.swork - a.swork;
+    let at = (a.workType || "").toLowerCase(), bt = (b.workType || "").toLowerCase();
+    if (at < bt) return -1;
+    if (at > bt) return 1;
+    return b.totalCollab - a.totalCollab;
   });
 
   paginateAndRenderStatus(sorted.length, distinctWorks, `for current filters`);
@@ -705,7 +721,7 @@ function render() {
       ${showProgCol && cols0.schol.prog && cols0.schol.prog.show ? `<td class="muted">${esc(r.sProg)}</td>` : ""}
       ${showMedCol && cols0.schol.medc && cols0.schol.medc.show ? `<td class="muted">${esc(r.sMedC)}</td>` : ""}
       ${cols0.schol.disc && cols0.schol.disc.show ? `<td class="muted">${esc(r.sDisc)}</td>` : ""}
-      <td class="num">${r.swork.toLocaleString()}</td>
+      <td class="num">${r.totalCollab.toLocaleString()}</td>
       <td>${esc(r.workType)}</td>
       <td>${esc(r.year)}</td>
       <td class="muted">${esc(r.wid)}</td>
@@ -906,7 +922,7 @@ function downloadCsv() {
     if (showProgCol && cols0.schol.prog && cols0.schol.prog.show) hdr.push("Program(s)");
     if (showMedCol && cols0.schol.medc && cols0.schol.medc.show) hdr.push("Medical");
     if (cols0.schol.disc && cols0.schol.disc.show) hdr.push("Discipline");
-    hdr.push("Works", "Collaboration Type", "Year", "Collab ID", "Collab Detail", "Collab Title", "Collab Institution", "Collab Faculty Name", "Relationship");
+    hdr.push("Total Collaborators", "Collaboration Type", "Year", "Collab ID", "Collab Detail", "Collab Title", "Collab Institution", "Collab Faculty Name", "Relationship");
     if (cols0.collab.bf && cols0.collab.bf.show) hdr.push("Collab Broad Field");
     if (cols0.collab.college && cols0.collab.college.show) hdr.push("Collab College/School");
     if (showDeptCol && cols0.collab.dept && cols0.collab.dept.show) hdr.push("Collab Department(s)");
@@ -922,7 +938,7 @@ function downloadCsv() {
       if (showProgCol && cols0.schol.prog && cols0.schol.prog.show) vals.push(r.sProg);
       if (showMedCol && cols0.schol.medc && cols0.schol.medc.show) vals.push(r.sMedC);
       if (cols0.schol.disc && cols0.schol.disc.show) vals.push(r.sDisc);
-      vals.push(r.swork, r.workType, r.year, r.wid, r.detail, r.title, r.cInstD, r.cName, REL_NAME[r.rel]);
+      vals.push(r.totalCollab, r.workType, r.year, r.wid, r.detail, r.title, r.cInstD, r.cName, REL_NAME[r.rel]);
       if (cols0.collab.bf && cols0.collab.bf.show) vals.push(r.cBF);
       if (cols0.collab.college && cols0.collab.college.show) vals.push(r.cCollege);
       if (showDeptCol && cols0.collab.dept && cols0.collab.dept.show) vals.push(r.cDept);
