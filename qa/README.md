@@ -39,6 +39,38 @@ can re-run these instead of rebuilding harnesses from scratch.
   Result logs: `validation_results*.txt`.
 - `qadoc2.js` — builds the overnight QA docx (needs `npm install docx` in /tmp).
 
+## 2026-07-10 addition: counts_simple.html SAS migration
+
+New files in `sas/`: `build_counts_simple_v2.py` (flat validation rollup, Python stand-in
+since no SAS engine exists in this sandbox), `build_counts_simple_v3.py` (production
+work-grain rebuild, same stand-in reasoning), `build_counts_simple_export.sas` (the REAL SAS
+version for the user to run in their own environment - produces 6 CSVs), and
+`reshape_counts_simple_export.py` (purely mechanical CSV→JSON pivot for whichever of the two
+sources - Python stand-in or real SAS export - is being wired in; contains zero counting
+logic). `data/counts_simple_v3.json` is the current output, patched into
+`counts_simple.html`'s embedded `<script id="data">` blob in place (same precedent as
+matrix/chord global's earlier SAS rebuild - no fetch-at-runtime).
+
+Validated: Physics 948 within / 192 across (matches oracle); MIT institution all_works=16,747
+(SAS universe, up from prototype's 16,738); Physics within_collabs=5,561 matches
+network_viz.html's independently-validated figure exactly. jsdom smoke test (no canvas needed,
+plain table page): 36 department rows, person-level (1,270 rows), Work Type/interdisc/cap
+filters and CSV export all run with zero exceptions - one harness-only limitation
+(`URL.createObjectURL` unstubbed in jsdom), not a page bug, same class of quirk as below.
+
+Two field definitions (`nAuthors`, `interdisc`) had to be reverse-engineered since the old
+`build_counts_simple3.py` source isn't available in this repo/sandbox (lives in the
+un-mounted `MITCollabs` sibling) - cross-checked against the live page's own old embedded
+data: `nAuthors` max/min matched EXACTLY (292/2 both sides); `interdisc` flagged 68.6% of
+works vs the old data's 68.9% (close, within the expected small work-universe variance, not
+an exact-match proof). Flagged for user sign-off; not independently re-derivable without the
+original prototype source.
+
+`counts_table.html` removal is still incomplete: the OneDrive `collab-mit` copy's file
+couldn't be deleted (`allow_cowork_file_delete` errors "could not find mount" - that folder
+isn't connected in this sandbox, confirmed not transient). Needs manual deletion or a future
+session with that folder connected.
+
 ## Validation verdicts (2026-07-04) — do not re-litigate without new data
 
 - Matrix (723/723 unit + 27/27 college cells) and chord global (27/27): EXACT vs SAS.

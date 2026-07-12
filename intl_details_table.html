@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MIT International Collaborations</title>
+<!--
+  INTERNATIONAL COLLABS DETAILS TABLE. Fetches compact per-anchor JSON from data/intl/ (built
+  by data/build_intl_scan.py + data/build_intl_merge2.py, from data/MitInternationalCollabsLong.csv).
+  Requires being served over http (fetch() of local files is blocked).
+
+  Modeled closely on details_table.html, but this source dataset is structurally different in
+  ways that shape every filter below:
+   - Every row is MIT-scholar x external-institution - CollabInstId is NEVER MIT's own id
+     (verified against the raw CSV), so there is no Within/Across/Inter axis here the way the
+     AAD2024 Details page has one; this whole dataset is inherently the "external" side.
+   - No collaborator PERSON - the collaborator "identity" is an INSTITUTION (name, country,
+     industry classification), not a person. "Total Partner Institutions" on a work counts
+     distinct institutions, not co-author headcount (this dataset can't see individual
+     co-authors at partner institutions).
+   - 3 MIT unit types: Department, Program, OAU ("Other Academic Unit" - MIT's labs/centers/
+     institutes, e.g. CSAIL, Media Lab, Koch Institute). No Medical bucket in this file.
+   - No Discipline / Broad Field columns - absent from this extract entirely.
+   - Genuinely longitudinal (Year spans 2018-2025, unlike AAD2024's single database-year
+     snapshot) - a Year filter is meaningful here.
+   - ~29% of collaborator institutions are companies/hospitals/government per NAICS
+     classification, not universities - exposed as a derived Partner Type (Academic /
+     Non-Academic) filter, plus the raw NAICS_Name industry category as a detail column,
+     rather than filtered out by default.
+   - Grain is (scholar, work, collaborator institution, scholar-affiliation) - the same "keep
+     ALL affiliations" duplication as details_base.csv (a single (PersonId,DOI,CollabInstId)
+     triple repeats once per MIT-side affiliation - verified avg ~2.6x, max 11x). Only the
+     MIT-scholar side needs a Concat control (College / Department(s) / Program(s) / OAU(s));
+     the collaborator side is a single institution/country/industry tuple per row, nothing to
+     concatenate there.
+
+  DESIGN TOKENS — copied from details_table.html, keep in sync:
+    --navy:#254467  --ink:#052448  --bg:#f7f7f7  --card:#fff
+    --text:#212529  --accent:#0066b4  --line:#e2e5ea
+    Fonts: Open Sans (body), Crimson Text (headings)
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Text:wght@600;700&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#254467;--ink:#052448;--bg:#f7f7f7;--card:#fff;--text:#212529;--accent:#0066b4;--line:#e2e5ea;
+      --acad:#1f7a4d;--nonacad:#9a6a00;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:14px/1.45 'Open Sans',-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:var(--text);background:var(--bg)}
+header{background:var(--navy);color:#fff;padding:12px 20px}
+h1{font-family:'Crimson Text',serif;font-size:19px;font-weight:700;margin-bottom:8px;letter-spacing:.01em}
+.controls{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:flex-end}
+.ctl{display:flex;flex-direction:column;gap:4px}
+.ctl label{font-size:10px;font-weight:600;color:rgba(255,255,255,.65);text-transform:uppercase;letter-spacing:.05em}
+.ctl .hint{font-size:9.5px;font-weight:400;color:rgba(255,255,255,.5);text-transform:none;letter-spacing:0}
+select,input[type=text],input[type=number]{font:13px inherit;padding:6px 9px;border:1px solid rgba(255,255,255,.25);border-radius:6px;
+  background:rgba(255,255,255,.12);color:#fff;min-width:150px}
+select option{background:var(--navy);color:#fff}
+select[multiple]{min-height:78px}
+input[type=text],input[type=number]{background:#fff;color:var(--text);border-color:var(--line);min-width:150px}
+.seg{display:inline-flex;border:1px solid rgba(255,255,255,.25);border-radius:6px;overflow:hidden}
+.seg button{font:13px inherit;border:0;background:transparent;padding:6px 13px;cursor:pointer;color:rgba(255,255,255,.65)}
+.seg button.on{background:#fff;color:var(--navy);font-weight:700}
+.btn{font:13px inherit;font-weight:700;padding:7px 14px;border-radius:6px;border:1px solid rgba(255,255,255,.3);
+  background:rgba(255,255,255,.14);color:#fff;cursor:pointer}
+.btn:hover{background:rgba(255,255,255,.24)}
+.btn.primary{background:#fff;color:var(--navy)}
+.btn.primary:hover{background:#e9edf3}
+.chkgrp{display:flex;flex-wrap:wrap;gap:3px 12px;max-width:260px}
+.chkgrp label{display:inline-flex;gap:5px;align-items:center;font-size:12px;font-weight:500;text-transform:none;
+  letter-spacing:0;color:#fff;cursor:pointer}
+.sidegrp{display:flex;flex-direction:column;gap:4px;padding:6px 10px;border:1px solid rgba(255,255,255,.2);border-radius:6px;background:transparent}
+.sidegrp .ttl{font-size:10px;font-weight:700;color:rgba(255,255,255,.75);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px}
+.fieldgrid{display:grid;grid-template-columns:auto 50px 58px;row-gap:5px;column-gap:8px;align-items:center;
+  background:transparent;font-size:12px}
+.fieldgrid-row{display:contents}
+.fieldgrid .fhead{font-size:9.5px;color:rgba(255,255,255,.6);text-transform:uppercase;font-weight:600;text-align:center;background:transparent}
+.fieldgrid .fname{color:#fff;white-space:nowrap;background:transparent}
+.fieldgrid input[type=checkbox]{cursor:pointer;justify-self:center;accent-color:var(--navy)}
+.two-col{display:flex;gap:14px}
+.status{padding:8px 20px;color:#5a6a80;font-size:12.5px;background:var(--card);border-bottom:1px solid var(--line);
+  position:sticky;top:0;z-index:5;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.status b{color:var(--ink)}
+.pager{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.pager label{font-size:11px;color:#5a6a80}
+.pager select{font:12px inherit;padding:3px 6px;border:1px solid var(--line);border-radius:4px;background:#fff;color:var(--text);min-width:0}
+.pager button{font:12px inherit;font-weight:700;padding:4px 10px;border-radius:4px;border:1px solid var(--line);background:#fff;color:var(--ink);cursor:pointer}
+.pager button:hover:not(:disabled){background:#eef1f5}
+.pager button:disabled{opacity:.4;cursor:default}
+.pager .pageInd{font-size:12.5px;color:var(--ink);white-space:nowrap}
+.wrap{overflow:auto}
+table{border-collapse:collapse;width:100%;background:var(--card);font-size:13px}
+thead th{position:sticky;top:0;background:#eef1f5;border-bottom:2px solid var(--line);padding:8px 10px;text-align:left;
+  font-weight:700;font-size:11.5px;white-space:nowrap;cursor:pointer;user-select:none;z-index:2;color:var(--ink)}
+thead th:hover{background:#e3e8ee}
+tbody td{padding:6px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+tbody tr:hover{background:#f5f8fb}
+.scholar{font-weight:600;white-space:nowrap}
+.muted{color:#5a6a80}
+.title{max-width:340px}
+.pill{display:inline-block;font-size:10px;font-weight:700;padding:1px 7px;border-radius:9px;color:#fff;margin-left:6px;vertical-align:1px}
+.pill.acad{background:var(--acad)} .pill.nonacad{background:var(--nonacad)}
+.uw-person{display:inline-block;margin:0 14px 6px 0;vertical-align:top;line-height:1.35}
+.uw-sub{font-size:11px;color:#5a6a80;font-weight:400}
+.uw-more{font:11px inherit;font-weight:700;color:var(--accent);background:none;border:1px solid var(--line);border-radius:9px;padding:1px 8px;cursor:pointer;vertical-align:top}
+.uw-more:hover{background:#eef4fa}
+footer{padding:10px 20px;color:#5a6a80;font-size:11px}
+.err{padding:40px;text-align:center;color:#8a2b2b}
+.aa-nav{background:#052448;padding:7px 20px;display:flex;gap:18px;
+  font:12px 'Open Sans',-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;flex-shrink:0}
+.aa-nav a{color:rgba(255,255,255,.7);text-decoration:none;font-weight:600;letter-spacing:.02em;
+  padding:3px 2px;border-bottom:2px solid transparent}
+.aa-nav a:hover{color:#fff}
+.aa-nav a.cur{color:#fff;border-bottom-color:#0066b4}
+</style>
+</head>
+<body>
+<div class="aa-nav">
+  <a href="key.html">Key</a>
+  <a href="details_v2.html">Details</a>
+  <a href="counts_v2.html">Counts</a>
+  <a href="network_viz.html">Network</a>
+  <a href="chord_viz.html">Chord</a>
+  <a href="matrix_viz.html">Matrix</a>
+  <a href="insights.html">Insights</a>
+  <a href="intl_details_table.html" class="cur">Int'l Collabs</a>
+  <a href="intl_map.html">Int'l Map</a>
+</div>
+<header>
+  <h1>MIT International Collaborations</h1>
+  <div class="controls">
+    <div class="ctl"><label>Unit Type</label>
+      <div class="seg" id="uk">
+        <button data-uk="Department" class="on">Department</button>
+        <button data-uk="Program">Program</button>
+        <button data-uk="OAU">OAU</button>
+        <button data-uk="All">All</button>
+      </div></div>
+
+    <div class="ctl"><label>Select College/School <span class="hint" title="Options narrow to colleges/schools that actually have a unit of the selected Unit Type. Many OAU labs/centers have no College/School.">(optional - ctrl/cmd-click for multiple; leave blank for all)</span></label>
+      <select id="collegeSel" multiple></select>
+      <button type="button" class="btn" id="collegeAll" style="margin-top:4px">All</button></div>
+
+    <div class="ctl"><label>Select Unit(s) <span class="hint">(optional - ctrl/cmd-click for multiple; leave blank for all)</span></label>
+      <select id="deptSel" multiple></select>
+      <button type="button" class="btn" id="deptAll" style="margin-top:4px">All</button></div>
+
+    <div class="ctl"><label>Select Country/Countries <span class="hint" title="Collaborator institution's country (129 distinct in this dataset).">(optional, multi-select)</span></label>
+      <select id="countrySel" multiple></select>
+      <div style="display:flex;gap:4px;margin-top:4px">
+      <button type="button" class="btn" id="countryAll">All</button>
+      <button type="button" class="btn" id="countryAllButUS" title="Select every country except United States">All but US</button>
+      </div></div>
+
+    <div class="ctl"><label>Partner Type <span class="hint" title="Derived from the collaborator institution's industry classification (NAICS). Academic = Colleges, Universities, and Professional Schools; everything else (companies, hospitals, government, etc.) is Non-Academic.">(academic vs. industry/gov't)</span></label><select id="partnerType">
+      <option value="all" selected>All</option>
+      <option value="Academic">Academic</option>
+      <option value="Non-Academic">Non-Academic</option></select></div>
+
+    <div class="ctl"><label>Search</label><input type="text" id="q" placeholder="scholar, institution, title&hellip;"></div>
+
+    <div class="ctl"><label>Max partner institutions/work</label><input type="text" id="maxCollab" placeholder="no cap" style="min-width:90px" title="Hide works with more than N distinct partner institutions in this view - large multi-institution collaborations (e.g. particle-physics experiments) can run into the hundreds"></div>
+
+    <div class="ctl"><label>Select Year(s) <span class="hint">(2018–2025, this dataset is longitudinal - optional, multi-select)</span></label>
+      <select id="yearSel" multiple></select>
+      <button type="button" class="btn" id="yearAll" style="margin-top:4px">All</button></div>
+
+    <div class="ctl sidegrp"><span class="ttl">Work Type</span>
+      <div class="chkgrp" id="typeCols">
+        <label><input type="checkbox" data-t="Article" checked> Article</label>
+        <label><input type="checkbox" data-t="Conference Proceeding" checked> Conf. Proceeding</label>
+      </div>
+    </div>
+
+    <div class="ctl"><label>Journal/venue contains</label><input type="text" id="detailFilter" placeholder="journal name&hellip;" style="min-width:140px"></div>
+
+    <div class="ctl sidegrp"><span class="ttl">Faculty columns</span>
+      <div class="fieldgrid" id="scholCols">
+        <div class="fieldgrid-row"><span></span><span class="fhead">Show</span><span class="fhead" title="Checked: multiple values for this field (e.g. 2 departments) join into one cell. Unchecked: one row per value instead.">Concat</span></div>
+        <div class="fieldgrid-row"><span class="fname">College / School</span><input type="checkbox" data-c="college" data-k="show"><input type="checkbox" data-c="college" data-k="concat" checked></div>
+        <div class="fieldgrid-row"><span class="fname">Department(s)</span><input type="checkbox" data-c="dept" data-k="show" checked><input type="checkbox" data-c="dept" data-k="concat" checked></div>
+        <div class="fieldgrid-row"><span class="fname">Program(s)</span><input type="checkbox" data-c="prog" data-k="show" checked><input type="checkbox" data-c="prog" data-k="concat" checked></div>
+        <div class="fieldgrid-row"><span class="fname">OAU(s)</span><input type="checkbox" data-c="oau" data-k="show" checked><input type="checkbox" data-c="oau" data-k="concat" checked></div>
+      </div>
+    </div>
+
+    <div class="ctl"><label>Show Industry column <span class="hint" title="The raw NAICS industry category for the collaborator institution (106 distinct values) - Partner Type above is a coarser Academic/Non-Academic derived from this.">(detail on Partner Type)</span></label>
+      <div style="height:30px;display:flex;align-items:center;gap:6px">
+        <input type="checkbox" id="showNaics">
+        <span style="color:#fff;font-size:12.5px">Industry</span>
+      </div>
+    </div>
+
+    <div class="ctl"><label>View <span class="hint" title="Off: one row per scholar×work×partner institution (detail grain). On: one row per distinct work — MIT scholars and partner institutions each listed once.">(unique works)</span></label>
+      <div style="height:30px;display:flex;align-items:center;gap:6px">
+        <input type="checkbox" id="uniqueWorks">
+        <span style="color:#fff;font-size:12.5px">One row per work</span>
+      </div>
+    </div>
+
+    <div class="ctl"><label>&nbsp;</label><button class="btn" id="clearFilters">Clear Filters</button></div>
+
+    <div class="ctl"><label>&nbsp;</label><button class="btn primary" id="downloadCsv">Download Data (CSV)</button></div>
+  </div>
+</header>
+<div class="status" id="status">
+  <span id="statusText">Loading&hellip;</span>
+  <div class="pager" id="pager">
+    <label for="pageSize">Rows/page</label>
+    <select id="pageSize">
+      <option value="100">100</option>
+      <option value="500" selected>500</option>
+      <option value="1000">1,000</option>
+      <option value="4000">4,000</option>
+    </select>
+    <button type="button" id="prevPage">&larr; Prev</button>
+    <span class="pageInd" id="pageIndicator">Page 1 of 1</span>
+    <button type="button" id="nextPage">Next &rarr;</button>
+  </div>
+</div>
+<div class="wrap"><table>
+  <thead><tr id="head"></tr></thead>
+  <tbody id="body"></tbody>
+</table></div>
+<footer>Source: <code>MitInternationalCollabsLong.csv</code> &middot; MIT scholars &times; external-institution collaborations, 2018&ndash;2025 &middot; one row per scholar&times;work&times;partner institution, joined across any additional MIT-side affiliations &mdash; do not sum rows as a work count, use distinct works. Every collaborator here is external to MIT by construction (no internal MIT&ndash;MIT rows in this file).</footer>
+
+<script>
+const DATA_DIR = "data/intl";
+const UT_NAME = ["Department","Program","OAU"];
+const ACADEMIC_NAICS = "Colleges, Universities, and Professional Schools";
+
+let mode = "Department"; // "Department" | "Program" | "OAU" | "All"
+let anchorsIndex = [];
+let cur = null;
+const modeCache = new Map();
+const sortState = {k: "sName", d: 1};
+let curPage = 1;
+const $ = id => document.getElementById(id);
+const esc = s => (s == null ? "" : ("" + s)).replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+const MODE_LABEL = {Department: "departments", Program: "programs", OAU: "OAUs (labs/centers)", All: "units"};
+
+function allowedTypes() {
+  if (mode === "All") return new Set([0, 1, 2]);
+  if (mode === "Program") return new Set([1]);
+  if (mode === "OAU") return new Set([2]);
+  return new Set([0]); // Department
+}
+
+// ===== Fetch + decode + merge =====
+function decodeInto(payload, allRows, worksOut, collegeToDepts) {
+  const strs = payload.strs, people = payload.people;
+  for (const wid in payload.works) worksOut[wid] = payload.works[wid];
+  const rbw = payload.rows_by_work;
+  for (const wid in rbw) {
+    const arr = rbw[wid];
+    for (let i = 0; i < arr.length; i++) {
+      const e = arr[i];
+      const sp = e[0];
+      const sName = people[sp] || sp;
+      const sCollege = strs[e[1]] || "";
+      const sUnit = strs[e[2]] || "";
+      const sUT = e[3];
+      const sDept = sUT === 0 ? sUnit : "", sProg = sUT === 1 ? sUnit : "", sOAU = sUT === 2 ? sUnit : "";
+      const instId = strs[e[4]] || "";
+      const instName = strs[e[5]] || "";
+      const country = strs[e[6]] || "";
+      const naics = strs[e[7]] || "";
+      const partnerType = naics === ACADEMIC_NAICS ? "Academic" : "Non-Academic";
+      allRows.push({ wid, sp, sName, sCollege, sUnit, sDept, sProg, sOAU, sUT, instId, instName, country, naics, partnerType });
+      if (sCollege) {
+        if (!collegeToDepts.has(sCollege)) collegeToDepts.set(sCollege, new Set());
+        if (sUnit) collegeToDepts.get(sCollege).add(sUnit);
+      }
+    }
+  }
+}
+
+async function fetchJson(path) {
+  const r = await fetch(path);
+  if (!r.ok) throw new Error(`fetch ${path} failed: ${r.status}`);
+  return r.json();
+}
+
+async function loadMode() {
+  if (modeCache.has(mode)) {
+    cur = modeCache.get(mode);
+    afterLoad();
+    return;
+  }
+  $("statusText").textContent = `Loading ${MODE_LABEL[mode]}…`;
+  setControlsDisabled(true);
+  try {
+    if (!anchorsIndex.length) {
+      const idx = await fetchJson(`${DATA_DIR}/anchors.json`);
+      anchorsIndex = idx.anchors;
+    }
+    const allowed = allowedTypes();
+    const files = anchorsIndex.filter(a => a.kind === "unit" && allowed.has(UT_NAME.indexOf(a.unit_type)));
+    const allRows = [];
+    const works = {};
+    const collegeToDepts = new Map();
+    const CONCURRENCY = 6;
+    let done = 0;
+    for (let i = 0; i < files.length; i += CONCURRENCY) {
+      const batch = files.slice(i, i + CONCURRENCY);
+      const payloads = await Promise.all(batch.map(a =>
+        fetchJson(`${DATA_DIR}/${a.file}`).catch(() => null)));
+      for (const p of payloads) if (p) decodeInto(p, allRows, works, collegeToDepts);
+      done += batch.length;
+      $("statusText").textContent = `Loading ${MODE_LABEL[mode]}… (${Math.min(done, files.length)}/${files.length} units)`;
+    }
+    const groups = groupRows(allRows);
+    cur = { rows: allRows, works, collegeToDepts, groups, workInstCount: computeWorkInstCounts(groups), _totalUnits: files.length };
+    modeCache.set(mode, cur);
+    afterLoad();
+  } catch (err) {
+    $("statusText").textContent = "";
+    $("body").innerHTML = `<tr><td colspan="20" class="err">Failed to load data: ${esc(String(err))}</td></tr>`;
+  } finally {
+    setControlsDisabled(false);
+  }
+}
+
+function setControlsDisabled(dis) {
+  document.querySelectorAll(".controls select, .controls input, .controls button").forEach(el => el.disabled = dis);
+}
+
+// Collapse the MIT-side-exploded raw rows down to (scholar, work, partner institution) grain.
+// A multi-affiliated scholar can carry several rows for the very same (work, institution) pair -
+// one per MIT-side affiliation - so join those affiliation fields WITHIN their own set, same
+// principle as details_table.html's groupRows (there it's MIN(rel) across a relationship axis;
+// here there's no relationship axis, just plain union of affiliations since every row already
+// agrees on the collaborator/institution side).
+function groupRows(rows) {
+  const map = new Map();
+  for (const r of rows) {
+    const key = r.wid + "|" + r.sp + "|" + r.instId;
+    let g = map.get(key);
+    if (!g) {
+      g = {
+        wid: r.wid, sp: r.sp, sName: r.sName,
+        instId: r.instId, instName: r.instName, country: r.country, naics: r.naics, partnerType: r.partnerType,
+        sCollege: new Set(), sUnit: new Set(), sDept: new Set(), sProg: new Set(), sOAU: new Set(),
+      };
+      map.set(key, g);
+    }
+    if (r.sCollege) g.sCollege.add(r.sCollege);
+    if (r.sUnit) g.sUnit.add(r.sUnit);
+    if (r.sDept) g.sDept.add(r.sDept);
+    if (r.sProg) g.sProg.add(r.sProg);
+    if (r.sOAU) g.sOAU.add(r.sOAU);
+  }
+  return [...map.values()];
+}
+
+// Distinct partner institutions per work, from the COMPLETE unfiltered roster (same "full
+// roster regardless of current filters" principle as details_table.html's Unique-Works view).
+function computeWorkInstCounts(groups) {
+  const byWid = new Map();
+  for (const g of groups) {
+    if (!byWid.has(g.wid)) byWid.set(g.wid, new Set());
+    byWid.get(g.wid).add(g.instId);
+  }
+  const counts = new Map();
+  for (const [wid, set] of byWid) counts.set(wid, set.size);
+  return counts;
+}
+
+// ===== Filter state readers =====
+function colState() {
+  const out = {};
+  document.querySelectorAll("#scholCols .fieldgrid-row").forEach(row => {
+    const inputs = row.querySelectorAll("input[type=checkbox]");
+    if (!inputs.length) return;
+    const c = inputs[0].dataset.c;
+    out[c] = { show: inputs[0].checked, concat: inputs[1].checked };
+  });
+  return out;
+}
+
+function selectedValues(sel) {
+  return [...sel.selectedOptions].map(o => o.value);
+}
+
+function currentFilters() {
+  const colleges = new Set(selectedValues($("collegeSel")));
+  const depts = new Set(selectedValues($("deptSel")));
+  const countries = new Set(selectedValues($("countrySel")));
+  const partnerType = $("partnerType").value;
+  const types = new Set([...document.querySelectorAll("#typeCols input[data-t]")].filter(x => x.checked).map(x => x.dataset.t));
+  const q = $("q").value.trim().toLowerCase();
+  const maxCollabRaw = $("maxCollab").value.trim();
+  const maxCollab = maxCollabRaw ? (parseInt(maxCollabRaw, 10) || Infinity) : Infinity;
+  const years = new Set(selectedValues($("yearSel")));
+  const detailQ = $("detailFilter").value.trim().toLowerCase();
+  return { colleges, depts, countries, partnerType, types, q, maxCollab, years, detailQ, cols: colState() };
+}
+
+function passesGroupFilters(g, f, workInstCount) {
+  if (f.colleges.size && ![...g.sCollege].some(c => f.colleges.has(c))) return false;
+  if (f.depts.size && ![...g.sUnit].some(d => f.depts.has(d))) return false;
+  if (f.countries.size && !f.countries.has(g.country)) return false;
+  if (f.partnerType !== "all" && g.partnerType !== f.partnerType) return false;
+  if (workInstCount > f.maxCollab) return false;
+  return true;
+}
+
+function workTypeName(w) { return w[4] === "1" || w[4] === 1 ? "Conference Proceeding" : "Article"; }
+
+function passesWorkFilters(w, f) {
+  if (f.types.size && !f.types.has(workTypeName(w))) return false;
+  if (f.years.size && !f.years.has(String(w[2]))) return false;
+  if (f.detailQ && !(w[1] || "").toLowerCase().includes(f.detailQ)) return false;
+  return true;
+}
+
+function joinOrFirst(setVal, concat) {
+  const vals = [...setVal].filter(Boolean).sort();
+  if (!vals.length) return [""];
+  if (concat) return [vals.join("; ")];
+  return vals;
+}
+
+// ===== Build the flat display-row list from current filters =====
+function buildDisplayRows() {
+  if (!cur) return { rows: [], distinctWorks: 0 };
+  const f = currentFilters();
+  const works = cur.works;
+
+  const byWork = new Map();
+  for (const g of cur.groups) {
+    const w = works[g.wid];
+    if (!w || !passesWorkFilters(w, f)) continue;
+    if (!byWork.has(g.wid)) byWork.set(g.wid, []);
+    byWork.get(g.wid).push(g);
+  }
+
+  const passing = [];
+  for (const [wid, groups] of byWork) {
+    const instCount = new Set(groups.map(g => g.instId)).size;
+    for (const g of groups) {
+      if (!passesGroupFilters(g, f, instCount)) continue;
+      passing.push(g);
+    }
+  }
+  const distinctWorkIds = new Set(passing.map(g => g.wid));
+
+  const cols = f.cols;
+  const rowsOut = [];
+  for (const g of passing) {
+    const w = works[g.wid];
+    const base = {
+      sp: g.sp, sName: g.sName, sUnit1: [...g.sUnit][0] || "",
+      wid: g.wid, title: w[0], detail: w[1], year: w[2], citations: w[3], workType: workTypeName(w),
+      instId: g.instId, instName: g.instName, country: g.country, naics: g.naics, partnerType: g.partnerType,
+      totalInst: (cur.workInstCount.get(g.wid) || 1),
+    };
+    const sVariants = {
+      college: joinOrFirst(g.sCollege, cols.college ? cols.college.concat : true),
+      dept: joinOrFirst(g.sDept, cols.dept ? cols.dept.concat : true),
+      prog: joinOrFirst(g.sProg, cols.prog ? cols.prog.concat : true),
+      oau: joinOrFirst(g.sOAU, cols.oau ? cols.oau.concat : true),
+    };
+    for (const scol of sVariants.college) for (const sdept of sVariants.dept) for (const sprog of sVariants.prog) for (const soau of sVariants.oau) {
+      rowsOut.push({ ...base, sCollege: scol, sDept: sdept, sProg: sprog, sOAU: soau });
+    }
+  }
+
+  let filtered = rowsOut;
+  if (f.q) {
+    filtered = filtered.filter(r =>
+      (r.sName + " " + r.instName + " " + r.title + " " + r.sDept).toLowerCase().includes(f.q));
+  }
+  return { rows: filtered, distinctWorks: distinctWorkIds.size };
+}
+
+// ===== Unique-works view: collapse to one row per work =====
+const _mkPerson = (id, name, isInst) => ({ id, name, isInst,
+                                    depts: new Set(), progs: new Set(), oaus: new Set(),
+                                    colleges: new Set(), country: "", naics: "", partnerType: "" });
+const _addAll = (set, src) => { for (const v of src) set.add(v); };
+
+function buildUniqueWorkRows(displayRows) {
+  const wids = new Set(displayRows.map(r => r.wid));
+  const byWid = new Map();
+  for (const g of cur.groups) {
+    if (!wids.has(g.wid)) continue;
+    let e = byWid.get(g.wid);
+    if (!e) {
+      const w = cur.works[g.wid] || ["", "", "", "", "0"];
+      byWid.set(g.wid, e = { wid: g.wid, title: w[0], detail: w[1], year: w[2], citations: w[3], workType: workTypeName(w),
+                              scholars: new Map(), insts: new Map() });
+    }
+    let s = e.scholars.get(g.sp);
+    if (!s) e.scholars.set(g.sp, s = _mkPerson(g.sp, g.sName, false));
+    _addAll(s.depts, g.sDept); _addAll(s.progs, g.sProg); _addAll(s.oaus, g.sOAU); _addAll(s.colleges, g.sCollege);
+    let i = e.insts.get(g.instId);
+    if (!i) e.insts.set(g.instId, i = _mkPerson(g.instId, g.instName, true));
+    i.country = g.country; i.naics = g.naics; i.partnerType = g.partnerType;
+  }
+  return [...byWid.values()].map(e => {
+    const byName = (a, b) => a.name.localeCompare(b.name);
+    const scholars = [...e.scholars.values()].sort(byName);
+    const insts = [...e.insts.values()].sort(byName);
+    return { wid: e.wid, title: e.title, detail: e.detail, year: e.year, citations: e.citations, workType: e.workType,
+             scholars, insts, nScholars: scholars.length, nInst: insts.length };
+  });
+}
+
+// ===== Rendering =====
+function buildHead(cols) {
+  $("head").innerHTML = cols.map(c =>
+    `<th data-k="${c.k}">${esc(c.label)}${sortState.k === c.k ? ` <span style="color:var(--accent);font-size:10px">${sortState.d < 0 ? "▼" : "▲"}</span>` : ""}</th>`
+  ).join("");
+  $("head").querySelectorAll("th").forEach(th => {
+    th.onclick = () => {
+      const k = th.dataset.k;
+      if (sortState.k === k) sortState.d = -sortState.d;
+      else { sortState.k = k; sortState.d = 1; }
+      curPage = 1;
+      render();
+    };
+  });
+}
+
+function pillHtml(partnerType) {
+  return `<span class="pill ${partnerType === "Academic" ? "acad" : "nonacad"}">${esc(partnerType)}</span>`;
+}
+
+function render() {
+  if (!cur) return;
+  const cols0 = colState();
+  const uniqueWorks = $("uniqueWorks").checked;
+  const showNaics = $("showNaics").checked;
+  const { rows, distinctWorks } = buildDisplayRows();
+
+  if (uniqueWorks) {
+    renderUnique(rows, distinctWorks, showNaics);
+    return;
+  }
+
+  const showDeptCol = mode === "Department" || mode === "All";
+  const showProgCol = mode === "Program" || mode === "All";
+  const showOauCol = mode === "OAU" || mode === "All";
+  const cols = [
+    { k: "sName", label: "Faculty Name" },
+    cols0.college && cols0.college.show && { k: "sCollege", label: "College/School" },
+    showDeptCol && cols0.dept && cols0.dept.show && { k: "sDept", label: "Department(s)" },
+    showProgCol && cols0.prog && cols0.prog.show && { k: "sProg", label: "Program(s)" },
+    showOauCol && cols0.oau && cols0.oau.show && { k: "sOAU", label: "OAU(s)" },
+    { k: "totalInst", label: "Total Partner Institutions" },
+    { k: "workType", label: "Work Type" },
+    { k: "year", label: "Year" },
+    { k: "citations", label: "Citations" },
+    { k: "wid", label: "DOI" },
+    { k: "title", label: "Title" },
+    { k: "detail", label: "Journal" },
+    { k: "instName", label: "Collab Institution" },
+    { k: "country", label: "Country" },
+    { k: "partnerType", label: "Partner Type" },
+    showNaics && { k: "naics", label: "Industry" },
+  ].filter(Boolean);
+  buildHead(cols);
+
+  const col = cols.find(c => c.k === sortState.k) || cols[0];
+  const sorted = rows.slice().sort((a, b) => {
+    let av = a[col.k], bv = b[col.k];
+    if (typeof av === "string") { av = av.toLowerCase(); bv = ("" + bv).toLowerCase(); }
+    if (av < bv) return -sortState.d;
+    if (av > bv) return sortState.d;
+    return 0;
+  });
+
+  paginateAndRenderStatus(sorted.length, distinctWorks, `for current filters`);
+  const size = parseInt($("pageSize").value, 10) || 500;
+  const startIdx = (curPage - 1) * size;
+  const page = sorted.slice(startIdx, startIdx + size);
+
+  $("body").innerHTML = page.length ? page.map(r => `<tr>
+      <td class="scholar">${esc(r.sName)}</td>
+      ${cols0.college && cols0.college.show ? `<td class="muted">${esc(r.sCollege)}</td>` : ""}
+      ${showDeptCol && cols0.dept && cols0.dept.show ? `<td class="muted">${esc(r.sDept)}</td>` : ""}
+      ${showProgCol && cols0.prog && cols0.prog.show ? `<td class="muted">${esc(r.sProg)}</td>` : ""}
+      ${showOauCol && cols0.oau && cols0.oau.show ? `<td class="muted">${esc(r.sOAU)}</td>` : ""}
+      <td class="num">${r.totalInst.toLocaleString()}</td>
+      <td>${esc(r.workType)}</td>
+      <td>${esc(r.year)}</td>
+      <td class="num">${esc(r.citations)}</td>
+      <td class="muted">${esc(r.wid)}</td>
+      <td class="title">${esc(r.title)}</td>
+      <td class="muted">${esc(r.detail)}</td>
+      <td>${esc(r.instName)}</td>
+      <td class="muted">${esc(r.country)}</td>
+      <td>${pillHtml(r.partnerType)}</td>
+      ${showNaics ? `<td class="muted">${esc(r.naics)}</td>` : ""}
+    </tr>`).join("") : `<tr><td colspan="${cols.length}" class="muted" style="padding:24px;text-align:center">No rows for this filter.</td></tr>`;
+}
+
+const PERSON_LIMIT = 10;
+let lastUW = new Map();
+const escAttr = s => esc(s).replace(/"/g, "&quot;");
+
+function scholarHtml(p) {
+  const depts = [...p.depts].sort().join("; ");
+  const progs = [...p.progs].sort().join("; ");
+  const oaus = [...p.oaus].sort().join("; ");
+  const cols = [...p.colleges].sort().join("; ");
+  const parts = [];
+  if (mode === "Department" || mode === "All") { if (depts) parts.push(depts); }
+  if (mode === "Program" || mode === "All") { if (progs) parts.push(progs); }
+  if (mode === "OAU" || mode === "All") { if (oaus) parts.push(oaus); }
+  const sub = parts.join("; ");
+  const tip = [p.name,
+    depts ? "Department(s): " + depts : "", progs ? "Program(s): " + progs : "", oaus ? "OAU(s): " + oaus : "",
+    cols ? "College / School: " + cols : ""].filter(Boolean).join("\n");
+  return `<span class="uw-person" title="${escAttr(tip)}">${esc(p.name)}<br><span class="uw-sub">${esc(sub || "")}</span></span>`;
+}
+
+function instHtml(p) {
+  const tip = [p.name, "Country: " + p.country, "Industry: " + p.naics].filter(Boolean).join("\n");
+  return `<span class="uw-person" title="${escAttr(tip)}">${esc(p.name)}${pillHtml(p.partnerType)}<br><span class="uw-sub">${esc(p.country || "")}</span></span>`;
+}
+
+function personListHtml(list, wid, side, expanded, htmlFn) {
+  const show = expanded ? list : list.slice(0, PERSON_LIMIT);
+  let h = show.map(htmlFn).join("");
+  if (!expanded && list.length > PERSON_LIMIT)
+    h += `<button type="button" class="uw-more" data-wid="${escAttr(wid)}" data-side="${side}">+ ${(list.length - PERSON_LIMIT).toLocaleString()} more</button>`;
+  return h;
+}
+
+function renderUnique(rows, distinctWorks, showNaics) {
+  const cols = [
+    { k: "title", label: "Title" },
+    { k: "workType", label: "Work Type" },
+    { k: "year", label: "Year" },
+    { k: "citations", label: "Citations" },
+    { k: "detail", label: "Journal" },
+    { k: "nScholars", label: "# MIT Scholars" },
+    { k: "scholLabel", label: "MIT Scholars" },
+    { k: "nInst", label: "# Partner Institutions" },
+    { k: "instLabel", label: "Partner Institutions" },
+  ];
+  buildHead(cols);
+  const uw = buildUniqueWorkRows(rows).map(w => ({ ...w,
+    scholLabel: w.scholars.map(p => p.name).join("; "),
+    instLabel: w.insts.map(p => p.name).join("; ") }));
+  const col = cols.find(c => c.k === sortState.k) || cols[0];
+  const sorted = uw.slice().sort((a, b) => {
+    let av = a[col.k], bv = b[col.k];
+    if (typeof av === "string") { av = av.toLowerCase(); bv = ("" + bv).toLowerCase(); }
+    if (av < bv) return -sortState.d;
+    if (av > bv) return sortState.d;
+    return 0;
+  });
+  paginateAndRenderStatus(sorted.length, distinctWorks, `distinct works (unique-works view)`);
+  const size = parseInt($("pageSize").value, 10) || 500;
+  const startIdx = (curPage - 1) * size;
+  const page = sorted.slice(startIdx, startIdx + size);
+  lastUW = new Map(page.map(w => [String(w.wid), w]));
+  $("body").innerHTML = page.length ? page.map(w => `<tr>
+      <td class="title">${esc(w.title)}</td>
+      <td>${esc(w.workType)}</td>
+      <td>${esc(w.year)}</td>
+      <td class="num">${esc(w.citations)}</td>
+      <td class="muted">${esc(w.detail)}</td>
+      <td class="num">${w.nScholars}</td>
+      <td>${personListHtml(w.scholars, w.wid, "schol", false, scholarHtml)}</td>
+      <td class="num">${w.nInst}</td>
+      <td>${personListHtml(w.insts, w.wid, "inst", false, instHtml)}</td>
+    </tr>`).join("") : `<tr><td colspan="${cols.length}" class="muted" style="padding:24px;text-align:center">No works for this filter.</td></tr>`;
+}
+
+function paginateAndRenderStatus(total, distinctWorks, suffix) {
+  const size = parseInt($("pageSize").value, 10) || 500;
+  const pageCount = Math.max(1, Math.ceil(total / size));
+  if (curPage > pageCount) curPage = pageCount;
+  if (curPage < 1) curPage = 1;
+  $("pageIndicator").textContent = `Page ${curPage} of ${pageCount}`;
+  $("prevPage").disabled = curPage <= 1;
+  $("nextPage").disabled = curPage >= pageCount;
+  $("statusText").innerHTML = `<b>${distinctWorks.toLocaleString()}</b> distinct works &middot; <b>${total.toLocaleString()}</b> rows ${esc(suffix)}`;
+}
+
+// ===== College/Department cascading filter option lists =====
+function refreshCollegeDeptOptions() {
+  if (!cur) return;
+  const prevColleges = new Set(selectedValues($("collegeSel")));
+  const prevDepts = new Set(selectedValues($("deptSel")));
+  const c2d = cur.collegeToDepts;
+  const colleges = [...c2d.keys()].sort();
+  $("collegeSel").innerHTML = colleges.map(c =>
+    `<option value="${esc(c)}"${prevColleges.has(c) ? " selected" : ""}>${esc(c)}</option>`).join("");
+
+  let deptPool;
+  if (prevColleges.size) {
+    deptPool = new Set();
+    for (const c of prevColleges) for (const d of (c2d.get(c) || [])) deptPool.add(d);
+  } else {
+    deptPool = new Set();
+    for (const set of c2d.values()) for (const d of set) deptPool.add(d);
+  }
+  const depts = [...deptPool].sort();
+  $("deptSel").innerHTML = depts.map(d =>
+    `<option value="${esc(d)}"${prevDepts.has(d) ? " selected" : ""}>${esc(d)}</option>`).join("");
+}
+
+function refreshOtherOptions() {
+  if (!cur) return;
+  if (!cur._countries) {
+    const c = new Set(), y = new Set();
+    for (const g of cur.groups) if (g.country) c.add(g.country);
+    for (const wid in cur.works) { const yr = String(cur.works[wid][2] || "").trim(); if (yr) y.add(yr); }
+    cur._countries = [...c].sort();
+    cur._years = [...y].sort((a, b) => b.localeCompare(a, undefined, { numeric: true }));
+  }
+  const fill = (sel, vals) => {
+    const prev = new Set(selectedValues(sel));
+    sel.innerHTML = vals.map(v => `<option value="${esc(v)}"${prev.has(v) ? " selected" : ""}>${esc(v)}</option>`).join("");
+  };
+  fill($("countrySel"), cur._countries); fill($("yearSel"), cur._years);
+}
+
+function afterLoad() {
+  refreshCollegeDeptOptions();
+  refreshOtherOptions();
+  curPage = 1;
+  render();
+}
+
+// ===== CSV export (uncapped) =====
+function downloadCsv() {
+  if (!cur) return;
+  const uniqueWorks = $("uniqueWorks").checked;
+  const showNaics = $("showNaics").checked;
+  const { rows } = buildDisplayRows();
+  const cols0 = colState();
+  let hdr, lines;
+  if (uniqueWorks) {
+    const uw = buildUniqueWorkRows(rows);
+    hdr = ["Title", "Work Type", "Year", "Citations", "Journal", "# MIT Scholars", "MIT Scholars", "# Partner Institutions", "Partner Institutions"];
+    lines = [hdr.join(",")];
+    uw.forEach(w => lines.push([
+      w.title, w.workType, w.year, w.citations, w.detail,
+      w.scholars.length, w.scholars.map(p => p.name).join("; "),
+      w.insts.length, w.insts.map(p => `${p.name} (${p.country})`).join("; "),
+    ].map(v => `"${("" + v).replace(/"/g, '""')}"`).join(",")));
+  } else {
+    const showDeptCol = mode === "Department" || mode === "All";
+    const showProgCol = mode === "Program" || mode === "All";
+    const showOauCol = mode === "OAU" || mode === "All";
+    hdr = ["Faculty Name"];
+    if (cols0.college && cols0.college.show) hdr.push("College/School");
+    if (showDeptCol && cols0.dept && cols0.dept.show) hdr.push("Department(s)");
+    if (showProgCol && cols0.prog && cols0.prog.show) hdr.push("Program(s)");
+    if (showOauCol && cols0.oau && cols0.oau.show) hdr.push("OAU(s)");
+    hdr.push("Total Partner Institutions", "Work Type", "Year", "Citations", "DOI", "Title", "Journal", "Collab Institution", "Country", "Partner Type");
+    if (showNaics) hdr.push("Industry");
+    lines = [hdr.join(",")];
+    rows.forEach(r => {
+      const vals = [r.sName];
+      if (cols0.college && cols0.college.show) vals.push(r.sCollege);
+      if (showDeptCol && cols0.dept && cols0.dept.show) vals.push(r.sDept);
+      if (showProgCol && cols0.prog && cols0.prog.show) vals.push(r.sProg);
+      if (showOauCol && cols0.oau && cols0.oau.show) vals.push(r.sOAU);
+      vals.push(r.totalInst, r.workType, r.year, r.citations, r.wid, r.title, r.detail, r.instName, r.country, r.partnerType);
+      if (showNaics) vals.push(r.naics);
+      lines.push(vals.map(v => `"${("" + v).replace(/"/g, '""')}"`).join(","));
+    });
+  }
+  const blob = new Blob([lines.join("\n")], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.download = `MIT_intl_collabs_${mode}.csv`;
+  a.href = url;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ===== Wiring =====
+function onFilterChange() { curPage = 1; render(); }
+
+$("uk").querySelectorAll("button").forEach(b => b.onclick = () => {
+  mode = b.dataset.uk;
+  $("uk").querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
+  $("collegeSel").innerHTML = ""; $("deptSel").innerHTML = "";
+  loadMode();
+});
+$("collegeSel").onchange = () => { refreshCollegeDeptOptions(); onFilterChange(); };
+$("collegeAll").onclick = () => { [...$("collegeSel").options].forEach(o => o.selected = false); refreshCollegeDeptOptions(); onFilterChange(); };
+$("deptSel").onchange = onFilterChange;
+$("deptAll").onclick = () => { [...$("deptSel").options].forEach(o => o.selected = false); onFilterChange(); };
+$("countrySel").onchange = onFilterChange;
+$("countryAll").onclick = () => { [...$("countrySel").options].forEach(o => o.selected = false); onFilterChange(); };
+$("countryAllButUS").onclick = () => { [...$("countrySel").options].forEach(o => o.selected = (o.value !== "UNITED STATES")); onFilterChange(); };
+$("partnerType").onchange = onFilterChange;
+$("q").oninput = onFilterChange;
+$("maxCollab").oninput = onFilterChange;
+$("yearSel").onchange = onFilterChange;
+$("yearAll").onclick = () => { [...$("yearSel").options].forEach(o => o.selected = false); onFilterChange(); };
+$("detailFilter").oninput = onFilterChange;
+document.querySelectorAll("#typeCols input[data-t]").forEach(cb => cb.onchange = onFilterChange);
+document.querySelectorAll("#scholCols input[type=checkbox]").forEach(cb => cb.onchange = onFilterChange);
+$("showNaics").onchange = onFilterChange;
+$("uniqueWorks").onchange = onFilterChange;
+$("clearFilters").onclick = () => {
+  $("partnerType").value = "all";
+  ["q", "maxCollab", "detailFilter"].forEach(id => $(id).value = "");
+  [$("collegeSel"), $("deptSel"), $("countrySel"), $("yearSel")].forEach(sel => [...sel.options].forEach(o => o.selected = false));
+  document.querySelectorAll("#typeCols input[data-t]").forEach(cb => cb.checked = true);
+  refreshCollegeDeptOptions(); refreshOtherOptions(); onFilterChange();
+};
+$("downloadCsv").onclick = downloadCsv;
+$("pageSize").onchange = () => { curPage = 1; render(); };
+$("prevPage").onclick = () => { if (curPage > 1) { curPage--; render(); } };
+$("nextPage").onclick = () => { curPage++; render(); };
+$("body").addEventListener("click", e => {
+  const b = e.target.closest(".uw-more");
+  if (!b) return;
+  const w = lastUW.get(b.dataset.wid);
+  if (!w) return;
+  const side = b.dataset.side;
+  b.closest("td").innerHTML = side === "schol"
+    ? personListHtml(w.scholars, w.wid, side, true, scholarHtml)
+    : personListHtml(w.insts, w.wid, side, true, instHtml);
+});
+
+loadMode();
+// build: 2026-07-08 international collaborations page (v1)
+</script>
+</body>
+</html>

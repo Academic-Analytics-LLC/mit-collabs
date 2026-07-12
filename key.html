@@ -76,13 +76,14 @@ footer{padding:12px 20px;color:var(--muted);font-size:11px;border-top:1px solid 
 <body>
 <div class="aa-nav">
   <a href="key.html" class="cur">Key</a>
-  <a href="details_table.html">Details</a>
-  <a href="counts_table.html">Counts (Partners)</a>
-  <a href="counts_simple.html">Counts (Simple)</a>
+  <a href="details_v2.html">Details</a>
+  <a href="counts_v2.html">Counts</a>
   <a href="network_viz.html">Network</a>
   <a href="chord_viz.html">Chord</a>
   <a href="matrix_viz.html">Matrix</a>
   <a href="insights.html">Insights</a>
+  <a href="intl_details_table.html">Int'l Collabs</a>
+  <a href="intl_map.html">Int'l Map</a>
 </div>
 <header class="doc">
   <span class="site-title">MIT Collaboration Report — AAD2024</span>
@@ -110,7 +111,7 @@ footer{padding:12px 20px;color:var(--muted);font-size:11px;border-top:1px solid 
       <li><a href="#details-unique">3c. One row per work</a></li>
     </ul>
     <li class="parent"><a href="#counts-partners">4. Counts (Partners)</a></li>
-    <li class="parent"><a href="#counts-simple">5. Counts (Simple)</a></li>
+    <li class="parent"><a href="#counts-simple">5. Counts</a></li>
     <li class="parent"><a href="#network">6. Network</a></li>
     <li class="parent"><a href="#chord">7. Chord</a></li>
     <li class="parent"><a href="#matrix">8. Matrix</a></li>
@@ -129,7 +130,7 @@ footer{padding:12px 20px;color:var(--muted);font-size:11px;border-top:1px solid 
 <ul>
   <li><strong>Details</strong> — a detailed view of the entire dataset, with columns that can be shown concatenated or split into separate rows, and a one-row-per-work option for viewing each work's full collaborator roster.</li>
   <li><strong>Counts (Partners)</strong> — partner-grain totals per anchor unit, in the portal&rsquo;s partner-summed convention.</li>
-  <li><strong>Counts (Simple)</strong> — distinct-works totals per college/school, department, or person.</li>
+  <li><strong>Counts</strong> — distinct-works totals per college/school, department, or person.</li>
   <li><strong>Network</strong> — force-directed graph of people, anchored units, departments, or colleges/schools.</li>
   <li><strong>Chord</strong> — college/school-level flows, plus an anchored partner view.</li>
   <li><strong>Matrix</strong> — unit &times; unit heat map of shared distinct works by collaboration type.</li>
@@ -162,7 +163,7 @@ footer{padding:12px 20px;color:var(--muted);font-size:11px;border-top:1px solid 
 <h3 class="sub-heading" id="works-vs-pairs">2c. Works vs. partner-summed counts</h3>
 <p>Two counting conventions appear in this report, and both are correct under their stated definitions:</p>
 <ul>
-  <li><strong>Distinct works</strong> — each work counted once (Details, Counts (Simple), Matrix). Physics across-units: <strong>192</strong>.</li>
+  <li><strong>Distinct works</strong> — each work counted once (Details, Counts, Matrix). Physics across-units: <strong>192</strong>.</li>
   <li><strong>Partner-summed works</strong> — works summed over partner units, so a work shared with three partner units counts three times (Counts (Partners), Chord anchored view; the portal&rsquo;s convention). Physics across-units: <strong>231</strong>.</li>
 </ul>
 <div class="callout warn"><div class="callout-label">Never sum rows</div>
@@ -216,7 +217,7 @@ footer{padding:12px 20px;color:var(--muted);font-size:11px;border-top:1px solid 
   <td><span class="subv">Article/Proceeding Title</span><span class="subv">Book Title</span><span class="subv">Chapter Title</span><span class="subv">Grant Name</span><span class="subv">Patent Title</span><span class="subv">Brief Title</span></td></tr>
 <tr><td class="col">Collab Institution</td><td></td><td>The collaborating person&rsquo;s institution; Massachusetts Institute of Technology for internal collaborators.</td></tr>
 <tr><td class="col">Collab Faculty Name</td><td></td><td>The collaborating person, with their relationship pill.</td></tr>
-<tr><td class="col">Collab Department(s) / Program(s) / Medical / Discipline</td><td></td><td>Each affiliation listed individually, split by unit type like the faculty side. For external collaborators these are units at their <em>own</em> institution (another university&rsquo;s department can share an MIT unit&rsquo;s name) and all appear in the Department(s) column.</td></tr>
+<tr><td class="col">Collab Department(s) / Program(s) / Medical / Discipline</td><td></td><td>Each affiliation listed individually, split by unit type like the faculty side &mdash; a collaborator&rsquo;s own Department/Program/Medical code decides the column, whether they&rsquo;re MIT or external. For external collaborators these are units at their <em>own</em> institution (another university&rsquo;s department can share an MIT unit&rsquo;s name, and some institutions record the same unit under more than one type).</td></tr>
 </table>
 
 <h3 class="sub-heading" id="details-filters">3b. Filters</h3>
@@ -241,7 +242,7 @@ footer{padding:12px 20px;color:var(--muted);font-size:11px;border-top:1px solid 
 </section>
 
 <section class="section" id="counts-simple">
-<h2 class="section-heading"><span class="sec-num">5</span>Counts (Simple)</h2>
+<h2 class="section-heading"><span class="sec-num">5</span>Counts</h2>
 <p>Honest <strong>distinct-works</strong> totals — no pairs model. One row per entity at the selected level (College / School, Department, or Person; institution totals as fixed cards), with five columns: Within, Across, Inter, Intra, All. Each cell counts each work once (Physics across = 192; MIT all = 16,738). Use this page when you need totals that add up work-for-work.</p>
 </section>
 
@@ -267,7 +268,7 @@ footer{padding:12px 20px;color:var(--muted);font-size:11px;border-top:1px solid 
 <h2 class="section-heading"><span class="sec-num">8</span>Matrix</h2>
 <p>Unit &times; unit heat map. Each cell counts <strong>distinct works</strong> with at least one distinct-person pair connecting the two units (MIT-side collaborators only); the diagonal is a unit&rsquo;s within-unit works. Cells can be filtered to a single collaboration type, capped by authors per work, viewed at Department/Program or College / School level, and sorted by total or alphabetically.</p>
 <div class="callout warn"><div class="callout-label">Cells are not additive</div>
-<p>A work connecting three units appears in all three pairwise cells — summing cells overcounts. Use Counts (Simple) for additive totals.</p></div>
+<p>A work connecting three units appears in all three pairwise cells — summing cells overcounts. Use Counts for additive totals.</p></div>
 </section>
 
 <section class="section" id="insights">
@@ -279,7 +280,7 @@ footer{padding:12px 20px;color:var(--muted);font-size:11px;border-top:1px solid 
 
 </main>
 </div>
-<footer>Source: <code>details_base.csv</code> (SAS extract) &middot; AAD2024-2904 &middot; MIT</footer>
+<footer>Source: <code>details_base.csv</code> &middot; AAD2024-2904 &middot; MIT</footer>
 
 <script>
 (function () {
@@ -299,5 +300,6 @@ footer{padding:12px 20px;color:var(--muted);font-size:11px;border-top:1px solid 
   update();
 })();
 </script>
+<script src="agent_widget.js" defer></script>
 </body>
 </html>

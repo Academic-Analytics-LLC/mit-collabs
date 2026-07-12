@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MIT Collaboration Details AAD2024</title>
+<!--
+  DETAILS TABLE — work-grain report (v2). Fetches compact per-anchor JSON from
+  data/details/ (built by sas/build_details_table.py). Requires being served over
+  http (not opened as a file:// page, since fetch() of local files is blocked).
+
+  v2.2: no more "pick an anchor to see anything." Every unit file matching the
+  current Unit Type (Department/Program/Medical/All) loads up front and is merged
+  into one dataset - College/School and Department/Program are now pure
+  client-side FILTERS on top of that (optional, multi-select, leave blank to see
+  everything). No new backend file needed for this: every row already belongs to
+  exactly one unit bucket at pack time, so "everything" = merge every unit file.
+
+  v2.3: filters cascade top to bottom (Unit Type -> College/School ->
+  Department/Program). Unit Type is now a single 4-way choice (Department/
+  Program/Medical/All - replaces the old Department/Program toggle plus a
+  separate "include medical" checkbox). College/School's option list is
+  narrowed to colleges that actually have a unit of the current kind; picking a
+  college further narrows Department/Program's option list to units within that
+  college. The college<->department relationship isn't in anchors.json, so it's
+  derived client-side once per Unit Type load by scanning the just-fetched rows
+  (cur._collegeToDepts).
+
+  v2.1 redesign:
+  - Grain is always (scholar, work, collaborator) - a field with multiple values
+    (e.g. a scholar in two departments) always joins them WITHIN that field's own
+    column automatically; it never splits into extra rows and never bleeds into
+    other fields. Each field (Broad Field/College/Department/Discipline) is always
+    its own separate column - there is no cross-field "combine" feature (removed;
+    it merged different fields together, which is not what was wanted).
+  - Work Type / Year / Detail are their own filterable, sortable columns.
+  - "Download CSV" exports exactly the columns/filters currently on screen,
+    uncapped (not limited to the 4000-row display cap).
+
+  DESIGN TOKENS — copied from base_template.html, keep in sync:
+    --navy:#254467  --ink:#052448  --bg:#f7f7f7  --card:#fff
+    --text:#212529  --accent:#0066b4  --line:#e2e5ea
+    Fonts: Open Sans (body), Crimson Text (headings)
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Text:wght@600;700&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#254467;--ink:#052448;--bg:#f7f7f7;--card:#fff;--text:#212529;--accent:#0066b4;--line:#e2e5ea;
+      --within:#1f7a4d;--across:#9a6a00;--inter:#7a4ac6;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:14px/1.45 'Open Sans',-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:var(--text);background:var(--bg)}
+header{background:var(--navy);color:#fff;padding:12px 20px}
+h1{font-family:'Crimson Text',serif;font-size:19px;font-weight:700;margin-bottom:8px;letter-spacing:.01em}
+.controls{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:flex-end}
+.ctl{display:flex;flex-direction:column;gap:4px}
+.ctl label{font-size:10px;font-weight:600;color:rgba(255,255,255,.65);text-transform:uppercase;letter-spacing:.05em}
+.ctl .hint{font-size:9.5px;font-weight:400;color:rgba(255,255,255,.5);text-transform:none;letter-spacing:0}
+select,input[type=text],input[type=number]{font:13px inherit;padding:6px 9px;border:1px solid rgba(255,255,255,.25);border-radius:6px;
+  background:rgba(255,255,255,.12);color:#fff;min-width:150px}
+select option{background:var(--navy);color:#fff}
+select[multiple]{min-height:78px}
+input[type=text],input[type=number]{background:#fff;color:var(--text);border-color:var(--line);min-width:150px}
+.seg{display:inline-flex;border:1px solid rgba(255,255,255,.25);border-radius:6px;overflow:hidden}
+.seg button{font:13px inherit;border:0;background:transparent;padding:6px 13px;cursor:pointer;color:rgba(255,255,255,.65)}
+.seg button.on{background:#fff;color:var(--navy);font-weight:700}
+.btn{font:13px inherit;font-weight:700;padding:7px 14px;border-radius:6px;border:1px solid rgba(255,255,255,.3);
+  background:rgba(255,255,255,.14);color:#fff;cursor:pointer}
+.btn:hover{background:rgba(255,255,255,.24)}
+.btn.primary{background:#fff;color:var(--navy)}
+.btn.primary:hover{background:#e9edf3}
+.chkgrp{display:flex;flex-wrap:wrap;gap:3px 12px;max-width:260px}
+.chkgrp label{display:inline-flex;gap:5px;align-items:center;font-size:12px;font-weight:500;text-transform:none;
+  letter-spacing:0;color:#fff;cursor:pointer}
+.sidegrp{display:flex;flex-direction:column;gap:4px;padding:6px 10px;border:1px solid rgba(255,255,255,.2);border-radius:6px;background:transparent}
+.sidegrp .ttl{font-size:10px;font-weight:700;color:rgba(255,255,255,.75);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px}
+.fieldgrid{display:grid;grid-template-columns:auto 50px 58px;row-gap:5px;column-gap:8px;align-items:center;
+  background:transparent;font-size:12px}
+.fieldgrid-row{display:contents}
+.fieldgrid .fhead{font-size:9.5px;color:rgba(255,255,255,.6);text-transform:uppercase;font-weight:600;text-align:center;background:transparent}
+.fieldgrid .fname{color:#fff;white-space:nowrap;background:transparent}
+.fieldgrid input[type=checkbox]{cursor:pointer;justify-self:center;accent-color:var(--navy)}
+.fieldgrid input[type=checkbox]:disabled{cursor:not-allowed;opacity:.35}
+.yr-range{display:flex;gap:4px;align-items:center}
+.yr-range input{width:64px;min-width:0}
+.two-col{display:flex;gap:14px}
+.status{padding:8px 20px;color:#5a6a80;font-size:12.5px;background:var(--card);border-bottom:1px solid var(--line);
+  position:sticky;top:0;z-index:5;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.status b{color:var(--ink)}
+.pager{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.pager label{font-size:11px;color:#5a6a80}
+.pager select{font:12px inherit;padding:3px 6px;border:1px solid var(--line);border-radius:4px;background:#fff;color:var(--text);min-width:0}
+.pager button{font:12px inherit;font-weight:700;padding:4px 10px;border-radius:4px;border:1px solid var(--line);background:#fff;color:var(--ink);cursor:pointer}
+.pager button:hover:not(:disabled){background:#eef1f5}
+.pager button:disabled{opacity:.4;cursor:default}
+.pager .pageInd{font-size:12.5px;color:var(--ink);white-space:nowrap}
+.wrap{overflow:auto}
+table{border-collapse:collapse;width:100%;background:var(--card);font-size:13px}
+thead th{position:sticky;top:0;background:#eef1f5;border-bottom:2px solid var(--line);padding:8px 10px;text-align:left;
+  font-weight:700;font-size:11.5px;white-space:nowrap;cursor:pointer;user-select:none;z-index:2;color:var(--ink)}
+thead th:hover{background:#e3e8ee}
+tbody td{padding:6px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+tbody tr:hover{background:#f5f8fb}
+.scholar{font-weight:600;white-space:nowrap}
+.muted{color:#5a6a80}
+.z{color:#c2cad6}
+.title{max-width:340px}
+.pill{display:inline-block;font-size:10px;font-weight:700;padding:1px 7px;border-radius:9px;color:#fff;margin-left:6px;vertical-align:1px}
+.pill.within{background:var(--within)} .pill.across{background:var(--across)} .pill.inter{background:var(--inter)}
+a.netlink{color:inherit;text-decoration:none;border-bottom:1px dotted var(--accent)}
+a.netlink:hover{color:var(--accent)}
+.uw-person{display:inline-block;margin:0 14px 6px 0;vertical-align:top;line-height:1.35}
+.uw-sub{font-size:11px;color:#5a6a80;font-weight:400}
+.uw-more{font:11px inherit;font-weight:700;color:var(--accent);background:none;border:1px solid var(--line);border-radius:9px;padding:1px 8px;cursor:pointer;vertical-align:top}
+.uw-more:hover{background:#eef4fa}
+footer{padding:10px 20px;color:#5a6a80;font-size:11px}
+.err{padding:40px;text-align:center;color:#8a2b2b}
+.loading{padding:40px;text-align:center;color:#5a6a80}
+.aa-nav{background:#052448;padding:7px 20px;display:flex;gap:18px;
+  font:12px 'Open Sans',-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;flex-shrink:0}
+.aa-nav a{color:rgba(255,255,255,.7);text-decoration:none;font-weight:600;letter-spacing:.02em;
+  padding:3px 2px;border-bottom:2px solid transparent}
+.aa-nav a:hover{color:#fff}
+.aa-nav a.cur{color:#fff;border-bottom-color:#0066b4}
+</style>
+</head>
+<body>
+<div class="aa-nav">
+  <a href="key.html">Key</a>
+  <a href="details_v2.html" class="cur">Details</a>
+    <a href="counts_v2.html">Counts</a>
+  <a href="network_viz.html">Network</a>
+  <a href="chord_viz.html">Chord</a>
+  <a href="matrix_viz.html">Matrix</a>
+  <a href="insights.html">Insights</a>
+  <a href="intl_details_table.html">Int'l Collabs</a>
+  <a href="intl_map.html">Int'l Map</a>
+</div>
+<header>
+  <h1>MIT Collaboration Details AAD2024</h1>
+  <div class="controls">
+    <div class="ctl"><label>Unit Type <span class="hint" title="Medical units are always included in the data, regardless of which Unit Type is selected. Pick Medical to see only medical units on their own.">(Medical always included)</span></label>
+      <div class="seg" id="uk">
+        <button data-uk="Department" class="on">Department</button>
+        <button data-uk="Program">Program</button>
+        <button data-uk="Medical">Medical</button>
+        <button data-uk="All">All</button>
+      </div></div>
+
+    <div class="ctl"><label>Select College(s)/School(s) <span class="hint" title="Options narrow to colleges/schools that actually have a unit of the selected Unit Type.">(optional - ctrl/cmd-click for multiple; leave blank for all)</span></label>
+      <select id="collegeSel" multiple></select>
+      <button type="button" class="btn" id="collegeAll" style="margin-top:4px">All</button></div>
+
+    <div class="ctl"><label>Select Unit(s) <span class="hint" title="Options narrow to match Unit Type above, and further narrow to units within any College/School selected to the left.">(optional - ctrl/cmd-click for multiple; leave blank for all)</span></label>
+      <select id="deptSel" multiple></select>
+      <button type="button" class="btn" id="deptAll" style="margin-top:4px">All</button></div>
+
+    <div class="ctl"><label>Select Discipline(s) <span class="hint">(faculty side; optional, multi-select)</span></label>
+      <select id="discSel" multiple></select>
+      <button type="button" class="btn" id="discAll" style="margin-top:4px">All</button></div>
+
+    <div class="ctl"><label>Select Collab Discipline(s) <span class="hint">(collaborator side; optional, multi-select)</span></label>
+      <select id="cdiscSel" multiple></select>
+      <button type="button" class="btn" id="cdiscAll" style="margin-top:4px">All</button></div>
+
+    <div class="ctl"><label>Scope</label><select id="scope">
+      <option value="all" selected>All</option>
+      <option value="0">Within Unit</option>
+      <option value="1">Across Units</option>
+      <option value="01">Intra (within + across)</option>
+      <option value="2">Across Institutions</option></select></div>
+
+    <div class="ctl"><label>Interdisciplinary <span class="hint" title="Derived client-side: Yes if the scholar's Discipline differs from the collaborator's Discipline on any qualifying affiliation for this row.">(Discipline differs)</span></label><select id="interdisc">
+      <option value="all" selected>All</option>
+      <option value="yes">Yes</option>
+      <option value="no">No</option></select></div>
+
+    <div class="ctl"><label>Title contains</label><input type="text" id="titleFilter" placeholder="paper/work title&hellip;" style="min-width:140px"></div>
+
+    <div class="ctl"><label>Detail contains</label><input type="text" id="detailFilter" placeholder="journal, venue&hellip;" style="min-width:140px"></div>
+
+    <div class="ctl"><label>Select Faculty <span class="hint">(optional, multi-select; type below to filter the list; list narrows with other filters)</span></label>
+      <input type="text" id="facultySearch" placeholder="type a name&hellip;" style="margin-bottom:4px;min-width:180px">
+      <select id="facultySel" multiple size="6"></select>
+      <button type="button" class="btn" id="facultyAll" style="margin-top:4px">All</button></div>
+
+    <div class="ctl"><label>Max collaborators/work</label><input type="text" id="maxCollab" placeholder="no cap" style="min-width:90px" title="Hide works with more than N collaborator rows in this view - some Physics/large-collab papers (e.g. LHC experiments) run into the thousands"></div>
+
+    <div class="ctl"><label>Select Year(s) <span class="hint">(optional, multi-select; only years in the data)</span></label>
+      <select id="yearSel" multiple></select>
+      <button type="button" class="btn" id="yearAll" style="margin-top:4px">All</button></div>
+
+    <div class="ctl sidegrp"><span class="ttl">Select Collaboration Type(s)</span>
+      <div class="chkgrp" id="typeCols" style="max-width:340px;display:grid;grid-template-columns:repeat(4,auto);column-gap:14px;row-gap:5px">
+        <label><input type="checkbox" data-t="Article" checked> Article</label>
+        <label><input type="checkbox" data-t="Conference Proceeding" checked> Conf. Proceeding</label>
+        <label><input type="checkbox" data-t="Book" checked> Book</label>
+        <label><input type="checkbox" data-t="Book Chapter" checked> Book Chapter</label>
+        <label><input type="checkbox" data-t="Federal Grant" checked> Federal Grant</label>
+        <label><input type="checkbox" data-t="Patent" checked> Patent</label>
+        <label><input type="checkbox" data-t="Clinical Trial" checked> Clinical Trial</label>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="ctl sidegrp"><span class="ttl">Faculty columns</span>
+        <div class="fieldgrid" id="scholCols">
+          <div class="fieldgrid-row"><span></span><span class="fhead">Show</span><span class="fhead" title="Checked: multiple values for this field (e.g. 2 departments) join into one cell. Unchecked: one row per value instead.">Concat</span></div>
+          <div class="fieldgrid-row"><span class="fname">Broad Field(s)</span><input type="checkbox" data-c="bf" data-k="show"><input type="checkbox" data-c="bf" data-k="concat" checked></div>
+          <div class="fieldgrid-row"><span class="fname">College / School</span><input type="checkbox" data-c="college" data-k="show"><input type="checkbox" data-c="college" data-k="concat" checked></div>
+          <div class="fieldgrid-row"><span class="fname">Department(s)</span><input type="checkbox" data-c="dept" data-k="show" checked><input type="checkbox" data-c="dept" data-k="concat" checked></div>
+          <div class="fieldgrid-row"><span class="fname">Program(s)</span><input type="checkbox" data-c="prog" data-k="show" checked><input type="checkbox" data-c="prog" data-k="concat" checked></div>
+          <div class="fieldgrid-row"><span class="fname">Medical</span><input type="checkbox" data-c="medc" data-k="show" checked><input type="checkbox" data-c="medc" data-k="concat" checked></div>
+          <div class="fieldgrid-row"><span class="fname">Discipline(s)</span><input type="checkbox" data-c="disc" data-k="show"><input type="checkbox" data-c="disc" data-k="concat" checked></div>
+        </div>
+      </div>
+      <div class="ctl sidegrp"><span class="ttl">Collab columns</span>
+        <div class="fieldgrid" id="collabCols">
+          <div class="fieldgrid-row"><span></span><span class="fhead">Show</span><span class="fhead" title="Checked: multiple values for this field (e.g. 2 departments) join into one cell. Unchecked: one row per value instead.">Concat</span></div>
+          <div class="fieldgrid-row"><span class="fname">Broad Field(s)</span><input type="checkbox" data-c="bf" data-k="show"><input type="checkbox" data-c="bf" data-k="concat" checked></div>
+          <div class="fieldgrid-row"><span class="fname">College / School</span><input type="checkbox" data-c="college" data-k="show"><input type="checkbox" data-c="college" data-k="concat" checked></div>
+          <div class="fieldgrid-row"><span class="fname">Department(s)</span><input type="checkbox" data-c="dept" data-k="show" checked><input type="checkbox" data-c="dept" data-k="concat" checked></div>
+          <div class="fieldgrid-row"><span class="fname">Program(s)</span><input type="checkbox" data-c="prog" data-k="show" checked><input type="checkbox" data-c="prog" data-k="concat" checked></div>
+          <div class="fieldgrid-row"><span class="fname">Medical</span><input type="checkbox" data-c="medc" data-k="show" checked><input type="checkbox" data-c="medc" data-k="concat" checked></div>
+          <div class="fieldgrid-row"><span class="fname">Discipline(s)</span><input type="checkbox" data-c="disc" data-k="show"><input type="checkbox" data-c="disc" data-k="concat" checked></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ctl"><label>View <span class="hint" title="Off: one row per scholar×work×collaborator (detail grain). On: one row per distinct work — every person on the work listed once, split into MIT vs. external-to-MIT collaborators. Within/Across/Inter tags appear on people when a Unit filter is selected.">(unique works)</span></label>
+      <div style="height:30px;display:flex;align-items:center;gap:6px">
+        <input type="checkbox" id="uniqueWorks">
+        <span style="color:#fff;font-size:12.5px">One row per work</span>
+      </div>
+    </div>
+
+    <div class="ctl"><label>&nbsp;</label><button class="btn" id="clearFilters">Clear Filters</button></div>
+
+    <div class="ctl"><label>&nbsp;</label><button class="btn primary" id="downloadCsv">Download Data (CSV)</button></div>
+  </div>
+</header>
+<div class="status" id="status">
+  <span id="statusText">Loading&hellip;</span>
+  <div class="pager" id="pager">
+    <label for="pageSize">Rows/page</label>
+    <select id="pageSize">
+      <option value="100">100</option>
+      <option value="500" selected>500</option>
+      <option value="1000">1,000</option>
+      <option value="4000">4,000</option>
+    </select>
+    <button type="button" id="prevPage">&larr; Prev</button>
+    <span class="pageInd" id="pageIndicator">Page 1 of 1</span>
+    <button type="button" id="nextPage">Next &rarr;</button>
+  </div>
+</div>
+<div class="wrap"><table>
+  <thead><tr id="head"></tr></thead>
+  <tbody id="body"></tbody>
+</table></div>
+
+<script>
+const DATA_DIR = "data/details";
+const UT_NAME = ["Department","Program","Medical","Medical"];
+const REL_NAME = ["within","across","inter"];
+const DIR_NAME = ["Internal","External"];
+const FIELD_LABEL = {bf: "Broad Field", college: "College", dept: "Dept.", disc: "Discipline"};
+const FIELD_PROP = {bf: "BF", college: "College", dept: "Dept", disc: "Disc"};
+
+let mode = "Department"; // "Department" | "Program" | "Medical" | "All"
+let anchorsIndex = [];
+let cur = null; // merged payload for ALL units matching current Unit Type: {strs, people, works, rows_by_work, _totalUnits, _collegeToDepts}
+const modeCache = new Map(); // Unit Type -> merged payload, so toggling back is instant
+const sortState = {k: "sName", d: 1};
+let curPage = 1; // on-screen pagination - CSV export always covers every row regardless of page
+const $ = id => document.getElementById(id);
+const esc = s => (s == null ? "" : ("" + s)).replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+const MODE_LABEL = {Department: "departments (+ medical)", Program: "programs (+ medical)", Medical: "medical units", All: "units"};
+
+// ===== Cross-page session filter persistence (shared with counts_simple.html) =====
+// Stored in sessionStorage (clears when the tab closes) under one shared key. Fields with a
+// direct Counts (Simple) equivalent (unit type, units, discipline, interdisciplinary,
+// collaboration types, max collaborators) round-trip between the two pages; Details-only
+// fields (colleges, collab discipline, years, title/detail text, faculty) are saved here too
+// so returning to Details after a detour to another page restores everything, even though
+// Counts doesn't understand them.
+const SHARED_FILTER_KEY = "aad2024_shared_filters";
+function loadSharedFilters() { try { return JSON.parse(sessionStorage.getItem(SHARED_FILTER_KEY) || "{}"); } catch (e) { return {}; } }
+function saveSharedFilters(partial) { const c = loadSharedFilters(); Object.assign(c, partial); try { sessionStorage.setItem(SHARED_FILTER_KEY, JSON.stringify(c)); } catch (e) {} }
+let restoredFromShared = false;
+
+// Unit Type is a single 4-way choice. Medical units are always included in the loaded
+// data no matter which Unit Type is selected - "Medical" isolates them on their own
+// (excluding Department/Program), and "All" means no restriction at all.
+// ===== Unit Type -> allowed UnitType codes (Department=0, Program=1, Medical=2) =====
+function allowedTypes() {
+  if (mode === "All") return new Set([0, 1, 2, 3]);
+  if (mode === "Medical") return new Set([2, 3]);
+  if (mode === "Program") return new Set([1, 2, 3]);
+  return new Set([0, 2, 3]); // Department
+}
+
+const addPair = (map, k, v) => { if (!k || !v) return; if (!map.has(k)) map.set(k, new Set()); map.get(k).add(v); };
+
+// ===== Fetch + decode + merge =====
+function decodeInto(payload, allRows, worksOut, maps) {
+  const strs = payload.strs, people = payload.people;
+  for (const wid in payload.works) worksOut[wid] = payload.works[wid];
+  const rbw = payload.rows_by_work;
+  for (const wid in rbw) {
+    const arr = rbw[wid];
+    for (let i = 0; i < arr.length; i++) {
+      const e = arr[i];
+      const sp = e[0], cp = e[6];
+      const sInfo = people[sp] || [sp, ""], cInfo = people[cp] || [cp, ""];
+      const sCollege = strs[e[1]] || "", sDisc = strs[e[4]] || "", sBF = strs[e[5]] || "";
+      const cCollege = strs[e[7]] || "", cDisc = strs[e[10]] || "", cBF = strs[e[11]] || "";
+      const cInst = strs[e[12]] || "";
+      // Unit names split by unit type so each renders in its own column
+      // (Department / Program(s) / Medical). sUnit keeps the raw name for
+      // the Unit filter, cascade and cross-links.
+      const sUnit = strs[e[2]] || "";
+      const sDept = e[3] === 0 ? sUnit : "", sProg = e[3] === 1 ? sUnit : "", sMedC = e[3] >= 2 ? sUnit : "";
+      const cUnit = strs[e[8]] || "";
+      // Collaborator unit type picks the column exactly like the scholar side, whether the
+      // collaborator is MIT or external — external institutions report their own
+      // Department/Program/Medical split too, so it's shown the same way (2026-07-08: this
+      // used to force ALL external units into Department(s) regardless of type; changed
+      // since Collab Program(s) already exists as its own column).
+      const cDept = e[9] === 0 ? cUnit : "";
+      const cProg = e[9] === 1 ? cUnit : "";
+      const cMedC = e[9] >= 2 ? cUnit : "";
+      allRows.push({
+        wid, sp, sName: sInfo[0], sRank: sInfo[1], sCollege, sUnit, sDept, sProg, sMedC, sUT: e[3], sDisc, sBF,
+        cp, cName: cInfo[0], cCollege, cDept, cProg, cMedC, cUT: e[9], cDisc, cBF, cInst,
+        rel: e[13], dir: e[14],
+      });
+      addPair(maps.collegeToDepts, sCollege, sUnit);
+      addPair(maps.deptToColleges, sUnit, sCollege);
+      addPair(maps.discToUnits, sDisc, sUnit);
+      addPair(maps.unitToDiscs, sUnit, sDisc);
+      addPair(maps.discToColleges, sDisc, sCollege);
+      addPair(maps.collegeToDiscs, sCollege, sDisc);
+    }
+  }
+}
+
+async function fetchJson(path) {
+  const r = await fetch(path);
+  if (!r.ok) throw new Error(`fetch ${path} failed: ${r.status}`);
+  return r.json();
+}
+
+async function loadMode() {
+  if (modeCache.has(mode)) {
+    cur = modeCache.get(mode);
+    afterLoad();
+    return;
+  }
+  $("statusText").textContent = `Loading ${MODE_LABEL[mode]}…`;
+  setControlsDisabled(true);
+  try {
+    if (!anchorsIndex.length) {
+      const idx = await fetchJson(`${DATA_DIR}/anchors.json`);
+      anchorsIndex = idx.anchors;
+    }
+    const allowed = allowedTypes();
+    const files = anchorsIndex.filter(a => a.kind === "unit" && allowed.has(UT_NAME.indexOf(a.unit_type)));
+    const allRows = [];
+    const works = {};
+    const maps = { collegeToDepts: new Map(), deptToColleges: new Map(),
+                    discToUnits: new Map(), unitToDiscs: new Map(),
+                    discToColleges: new Map(), collegeToDiscs: new Map() };
+    const CONCURRENCY = 6;
+    let done = 0;
+    for (let i = 0; i < files.length; i += CONCURRENCY) {
+      const batch = files.slice(i, i + CONCURRENCY);
+      const payloads = await Promise.all(batch.map(a =>
+        fetchJson(`${DATA_DIR}/${a.file}`).catch(() => null)));
+      for (const p of payloads) if (p) decodeInto(p, allRows, works, maps);
+      done += batch.length;
+      $("statusText").textContent = `Loading ${MODE_LABEL[mode]}… (${Math.min(done, files.length)}/${files.length} units)`;
+    }
+    const groups = groupRows(allRows);
+    cur = { rows: allRows, works, ...maps, groups, workPersonCount: computeWorkPersonCounts(groups), _totalUnits: files.length };
+    modeCache.set(mode, cur);
+    afterLoad();
+  } catch (err) {
+    $("statusText").textContent = "";
+    $("body").innerHTML = `<tr><td colspan="20" class="err">Failed to load data: ${esc(String(err))}</td></tr>`;
+  } finally {
+    setControlsDisabled(false);
+  }
+}
+
+function setControlsDisabled(dis) {
+  document.querySelectorAll(".controls select, .controls input, .controls button").forEach(el => el.disabled = dis);
+}
+
+// Collapse the both-sides-exploded raw rows down to the documented (scholar, work,
+// collaborator) grain. A multi-affiliated collaborator can carry BOTH a "Within Unit" row
+// (their affiliation that matches this anchor) and several "Across Units" rows (their other
+// affiliations) for the very same paper - take the most specific relationship (within beats
+// across beats inter, i.e. MIN(rel)) rather than showing contradictory rows, so a shared
+// affiliation always "counts" - matching the network/counts pages' any-overlap-wins rule.
+function groupRows(rows) {
+  const map = new Map();
+  for (const r of rows) {
+    const key = r.wid + "|" + r.sp + "|" + r.cp;
+    let g = map.get(key);
+    if (!g) {
+      g = {
+        wid: r.wid, sp: r.sp, sName: r.sName, sRank: r.sRank, cp: r.cp, cName: r.cName,
+        rel: r.rel, cInst: r.cInst,
+        // unitRel (2026-07-10 fix): best (min) relationship PER SPECIFIC AFFILIATION,
+        // not just the overall any-overlap-wins union below. Bug this fixes: a scholar
+        // with 2+ department affiliations (e.g. Seager: Physics + EAPS + Aero/Astro)
+        // could have a collaboration that's only "Within Unit" via ONE department, yet
+        // get counted as "Within Unit" for a totally unrelated one too, purely because
+        // that unit also happens to be in the scholar's unioned sUnit set below. The
+        // Unit + Scope filter combo now checks unitRel for whichever unit is selected,
+        // instead of the scholar's other affiliations' relationship leaking in.
+        unitRel: new Map(),
+        sCollege: new Set(), sUnit: new Set(), sDept: new Set(), sProg: new Set(), sMedC: new Set(), sDisc: new Set(), sBF: new Set(),
+        cCollege: new Set(), cDept: new Set(), cProg: new Set(), cMedC: new Set(), cDisc: new Set(), cBF: new Set(),
+      };
+      map.set(key, g);
+    }
+    if (r.rel < g.rel) g.rel = r.rel;
+    if (r.sUnit) {
+      const prevRel = g.unitRel.get(r.sUnit);
+      if (prevRel === undefined || r.rel < prevRel) g.unitRel.set(r.sUnit, r.rel);
+    }
+    if (r.sCollege) g.sCollege.add(r.sCollege);
+    if (r.sUnit) g.sUnit.add(r.sUnit);
+    if (r.sDept) g.sDept.add(r.sDept);
+    if (r.sProg) g.sProg.add(r.sProg);
+    if (r.sMedC) g.sMedC.add(r.sMedC);
+    if (r.sDisc) g.sDisc.add(r.sDisc);
+    if (r.sBF) g.sBF.add(r.sBF);
+    if (r.cCollege) g.cCollege.add(r.cCollege);
+    if (r.cDept) g.cDept.add(r.cDept);
+    if (r.cProg) g.cProg.add(r.cProg);
+    if (r.cMedC) g.cMedC.add(r.cMedC);
+    if (r.cDisc) g.cDisc.add(r.cDisc);
+    if (r.cBF) g.cBF.add(r.cBF);
+    if (r.cInst) g.cInst = r.cInst;
+  }
+  return [...map.values()];
+}
+
+// Total distinct people (scholars + collaborators, MIT + external) on each work, from the
+// COMPLETE unfiltered roster (same "full roster regardless of current filters" principle as
+// the Unique-Works view) -- so "Total Collaborators" on a row means everyone else on that
+// specific paper, not a count that shrinks when Scope/type/discipline filters are applied.
+function computeWorkPersonCounts(groups) {
+  const byWid = new Map();
+  for (const g of groups) {
+    if (!byWid.has(g.wid)) byWid.set(g.wid, new Set());
+    const s = byWid.get(g.wid);
+    s.add(g.sp);
+    s.add(g.cp);
+  }
+  const counts = new Map();
+  for (const [wid, set] of byWid) counts.set(wid, set.size);
+  return counts;
+}
+
+// ===== Filter state readers =====
+function colState() {
+  const read = prefix => {
+    const out = {};
+    document.querySelectorAll(`#${prefix}Cols .fieldgrid-row`).forEach(row => {
+      const inputs = row.querySelectorAll("input[type=checkbox]");
+      if (!inputs.length) return;
+      const c = inputs[0].dataset.c;
+      out[c] = { show: inputs[0].checked, concat: inputs[1].checked };
+    });
+    return out;
+  };
+  return { schol: read("schol"), collab: read("collab") };
+}
+
+function selectedValues(sel) {
+  return [...sel.selectedOptions].map(o => o.value);
+}
+
+function currentFilters() {
+  const scopeVal = $("scope").value;
+  const scopeRels = scopeVal === "all" ? null
+    : scopeVal === "01" ? new Set([0, 1])
+    : new Set([parseInt(scopeVal, 10)]);
+  const colleges = new Set(selectedValues($("collegeSel")));
+  const depts = new Set(selectedValues($("deptSel")));
+  const discs = new Set(selectedValues($("discSel")));
+  const cdiscs = new Set(selectedValues($("cdiscSel")));
+  const types = new Set([...document.querySelectorAll("#typeCols input[data-t]")].filter(x => x.checked).map(x => x.dataset.t));
+  const faculty = new Set(selectedValues($("facultySel")));
+  const maxCollabRaw = $("maxCollab").value.trim();
+  const maxCollab = maxCollabRaw ? (parseInt(maxCollabRaw, 10) || Infinity) : Infinity;
+  const years = new Set(selectedValues($("yearSel")));
+  const detailQ = $("detailFilter").value.trim().toLowerCase();
+  const titleQ = $("titleFilter").value.trim().toLowerCase();
+  const interdisc = $("interdisc").value;
+  return { scopeRels, colleges, depts, discs, cdiscs, types, faculty, maxCollab, years, detailQ, titleQ, interdisc, cols: colState() };
+}
+
+function isInterdisc(g) {
+  if (!g.sDisc.size || !g.cDisc.size) return false;
+  for (const d of g.cDisc) if (!g.sDisc.has(d)) return true;
+  for (const d of g.sDisc) if (!g.cDisc.has(d)) return true;
+  return false;
+}
+
+function passesGroupFilters(g, f, workCollabCount) {
+  if (f.depts.size) {
+    // Unit filter active (2026-07-10 fix): a Scope check here must be relative to ONE
+    // of the SELECTED units specifically, via g.unitRel - not g.rel, which is any-overlap-wins
+    // across the scholar's OTHER affiliations too and would let e.g. an Aero/Astro-only
+    // "within" relationship count as "Within Unit" for a Physics filter just because the
+    // same scholar also happens to hold a Physics affiliation.
+    const matchingUnits = [...f.depts].filter(d => g.sUnit.has(d));
+    if (!matchingUnits.length) return false;
+    if (f.scopeRels && !matchingUnits.some(d => f.scopeRels.has(g.unitRel.get(d)))) return false;
+  } else if (f.scopeRels && !f.scopeRels.has(g.rel)) {
+    return false;
+  }
+  if (f.colleges.size && ![...g.sCollege].some(c => f.colleges.has(c))) return false;
+  if (f.discs.size && ![...g.sDisc].some(d => f.discs.has(d))) return false;
+  if (f.cdiscs.size && ![...g.cDisc].some(d => f.cdiscs.has(d))) return false;
+  if (f.faculty.size && !f.faculty.has(g.sp)) return false;
+  if (f.interdisc === "yes" && !isInterdisc(g)) return false;
+  if (f.interdisc === "no" && isInterdisc(g)) return false;
+  if (workCollabCount > f.maxCollab) return false;
+  return true;
+}
+
+function passesWorkFilters(w, f) {
+  if (f.types.size && !f.types.has(w[1])) return false;
+  if (f.years.size && !f.years.has(String(w[2]))) return false;
+  if (f.detailQ && !(w[3] || "").toLowerCase().includes(f.detailQ)) return false;
+  if (f.titleQ && !(w[0] || "").toLowerCase().includes(f.titleQ)) return false;
+  return true;
+}
+
+function joinOrFirst(setVal, concat) {
+  const vals = [...setVal].filter(Boolean).sort();
+  if (!vals.length) return [""];
+  if (concat) return [vals.join("; ")];
+  return vals;
+}
+
+// ===== Build the flat display-row list from current filters =====
+function buildDisplayRows() {
+  if (!cur) return { rows: [], distinctWorks: 0 };
+  const f = currentFilters();
+  const works = cur.works;
+
+  // per-work qualifying-collaborator counts (for the max-collaborators cap and search)
+  const byWork = new Map();
+  for (const g of cur.groups) {
+    const w = works[g.wid];
+    if (!w || !passesWorkFilters(w, f)) continue;
+    if (!byWork.has(g.wid)) byWork.set(g.wid, []);
+    byWork.get(g.wid).push(g);
+  }
+
+  const rowsOut = [];
+  const distinctWorkIds = new Set();
+  const passing = [];
+  for (const [wid, groups] of byWork) {
+    const collabCount = groups.length;
+    for (const g of groups) {
+      if (!passesGroupFilters(g, f, collabCount)) continue;
+      passing.push(g);
+    }
+  }
+  for (const g of passing) {
+    distinctWorkIds.add(g.wid);
+  }
+
+  const cols = f.cols;
+  for (const g of passing) {
+    const w = works[g.wid];
+    const base = {
+      sp: g.sp, sName: g.sName, sRank: g.sRank,
+      sUnit1: [...g.sUnit][0] || "",
+      wid: g.wid, title: w[0], workType: w[1], year: w[2], detail: w[3],
+      cp: g.cp, cName: g.cName, rel: g.rel, cInst: g.cInst,
+      cInstD: g.cInst || (g.rel < 2 ? "Massachusetts Institute of Technology" : ""),
+      totalCollab: (cur.workPersonCount.get(g.wid) || 1) - 1,
+    };
+    // explode fields whose Concat toggle is off; concat=on fields join into one string
+    const sVariants = {
+      bf: joinOrFirst(g.sBF, cols.schol.bf ? cols.schol.bf.concat : true),
+      college: joinOrFirst(g.sCollege, cols.schol.college ? cols.schol.college.concat : true),
+      dept: joinOrFirst(g.sDept, cols.schol.dept ? cols.schol.dept.concat : true),
+      prog: joinOrFirst(g.sProg, cols.schol.prog ? cols.schol.prog.concat : true),
+      medc: joinOrFirst(g.sMedC, cols.schol.medc ? cols.schol.medc.concat : true),
+      disc: joinOrFirst(g.sDisc, cols.schol.disc ? cols.schol.disc.concat : true),
+    };
+    const cVariants = {
+      bf: joinOrFirst(g.cBF, cols.collab.bf ? cols.collab.bf.concat : true),
+      college: joinOrFirst(g.cCollege, cols.collab.college ? cols.collab.college.concat : true),
+      dept: joinOrFirst(g.cDept, cols.collab.dept ? cols.collab.dept.concat : true),
+      prog: joinOrFirst(g.cProg, cols.collab.prog ? cols.collab.prog.concat : true),
+      medc: joinOrFirst(g.cMedC, cols.collab.medc ? cols.collab.medc.concat : true),
+      disc: joinOrFirst(g.cDisc, cols.collab.disc ? cols.collab.disc.concat : true),
+    };
+    for (const sbf of sVariants.bf) for (const scol of sVariants.college) for (const sdept of sVariants.dept) for (const sprog of sVariants.prog) for (const smedc of sVariants.medc) for (const sdisc of sVariants.disc)
+      for (const cbf of cVariants.bf) for (const ccol of cVariants.college) for (const cdept of cVariants.dept) for (const cprog of cVariants.prog) for (const cmedc of cVariants.medc) for (const cdisc of cVariants.disc) {
+        rowsOut.push({ ...base, sBF: sbf, sCollege: scol, sDept: sdept, sProg: sprog, sMedC: smedc, sDisc: sdisc,
+                       cBF: cbf, cCollege: ccol, cDept: cdept, cProg: cprog, cMedC: cmedc, cDisc: cdisc });
+      }
+  }
+
+  // Title/Detail free-text and Faculty selection are now applied earlier (passesWorkFilters /
+  // passesGroupFilters) - each scoped to its own single field instead of one fuzzy combined search.
+  return { rows: rowsOut, distinctWorks: distinctWorkIds.size };
+}
+
+// ===== Unique-works view: collapse to one row per work =====
+// The current filters (scope, unit, search, ...) decide WHICH works qualify; each
+// qualifying work then shows its COMPLETE roster from the full unfiltered dataset —
+// e.g. a fully-internal work always lists ALL its MIT collaborators even when the
+// Scope filter is narrowed. Every person appears exactly once (a scholar is never
+// repeated on the collaborator side), split into MIT people and external-to-MIT
+// people (rel 2 with no MIT affiliation observed).
+const _mkPerson = (pid, name) => ({ pid, name, isScholar: false, rel: 2, deptLink: "",
+                                    depts: new Set(), progs: new Set(), medcs: new Set(),
+                                    discs: new Set(), colleges: new Set(), inst: "" });
+const _addAll = (set, src) => { for (const v of src) set.add(v); };
+
+function buildUniqueWorkRows(displayRows) {
+  const wids = new Set(displayRows.map(r => r.wid));
+  const byWid = new Map();
+  for (const g of cur.groups) {
+    if (!wids.has(g.wid)) continue;
+    let e = byWid.get(g.wid);
+    if (!e) {
+      const w = cur.works[g.wid] || ["", "", "", ""];
+      byWid.set(g.wid, e = { wid: g.wid, title: w[0], workType: w[1], year: w[2], detail: w[3],
+                              persons: new Map() });
+    }
+    let s = e.persons.get(g.sp);
+    if (!s) e.persons.set(g.sp, s = _mkPerson(g.sp, g.sName));
+    s.isScholar = true; s.rel = 0;
+    _addAll(s.depts, g.sDept); _addAll(s.progs, g.sProg); _addAll(s.medcs, g.sMedC);
+    _addAll(s.discs, g.sDisc); _addAll(s.colleges, g.sCollege);
+    if (!s.deptLink) s.deptLink = [...g.sUnit][0] || "";
+    let c = e.persons.get(g.cp);
+    if (!c) e.persons.set(g.cp, c = _mkPerson(g.cp, g.cName));
+    if (g.rel < c.rel) c.rel = g.rel;
+    if (!c.isScholar) {
+      _addAll(c.depts, g.cDept); _addAll(c.progs, g.cProg); _addAll(c.medcs, g.cMedC);
+      _addAll(c.discs, g.cDisc); _addAll(c.colleges, g.cCollege);
+      if (g.cInst) c.inst = g.cInst;
+      if (!c.deptLink) c.deptLink = [...g.cDept][0] || [...g.cProg][0] || [...g.cMedC][0] || [...g.sUnit][0] || "";
+    }
+  }
+  return [...byWid.values()].map(e => {
+    const byName = (a, b) => a.name.localeCompare(b.name);
+    const all = [...e.persons.values()];
+    // MIT list: anchored scholars first, then MIT collaborators, each alphabetical
+    const mit = [...all.filter(p => p.isScholar).sort(byName),
+                 ...all.filter(p => !p.isScholar && p.rel < 2).sort(byName)];
+    const ext = all.filter(p => !p.isScholar && p.rel === 2).sort(byName);
+    return { wid: e.wid, title: e.title, workType: e.workType, year: e.year, detail: e.detail,
+             mitList: mit, extList: ext, nMit: mit.length, nExt: ext.length };
+  });
+}
+
+// ===== Rendering =====
+function buildHead(cols) {
+  $("head").innerHTML = cols.map(c =>
+    `<th data-k="${c.k}">${esc(c.label)}${sortState.k === c.k ? ` <span style="color:var(--accent);font-size:10px">${sortState.d < 0 ? "▼" : "▲"}</span>` : ""}</th>`
+  ).join("");
+  $("head").querySelectorAll("th").forEach(th => {
+    th.onclick = () => {
+      const k = th.dataset.k;
+      if (sortState.k === k) sortState.d = -sortState.d;
+      else { sortState.k = k; sortState.d = 1; }
+      curPage = 1;
+      render();
+    };
+  });
+}
+
+function pillHtml(rel) {
+  return `<span class="pill ${REL_NAME[rel]}">${REL_NAME[rel]}</span>`;
+}
+
+// ===== Cross-link to network_viz.html =====
+// Passes pid always; anchor only when the row's scholar-dept is a single unambiguous unit
+// (concat mode can join several depts with "; " — then let the network page auto-detect
+// an anchor from the pid). Scope maps onto the network page's scope buttons.
+const NET_SCOPE = { "0": "within_unit", "1": "across_units", "01": "intra", "2": "inter", "all": "all" };
+function netLink(pid, dept) {
+  let u = `network_viz.html?pid=${encodeURIComponent(pid)}`;
+  if (dept && !dept.includes(";")) u += `&anchor=${encodeURIComponent(dept)}`;
+  const sc = NET_SCOPE[$("scope").value];
+  if (sc) u += `&scope=${sc}`;
+  return u;
+}
+function nameLink(pid, name, dept) {
+  return `<a class="netlink" href="${netLink(pid, dept)}" title="View in collaboration network">${esc(name)}</a>`;
+}
+
+function render() {
+  if (!cur) return;
+  const cols0 = colState();
+  const uniqueWorks = $("uniqueWorks").checked;
+  const { rows, distinctWorks } = buildDisplayRows();
+
+  if (uniqueWorks) {
+    renderUnique(rows, distinctWorks);
+    return;
+  }
+
+  const showDeptCol = mode === "Department" || mode === "All";
+  const showProgCol = mode === "Program" || mode === "All";
+  const showMedCol = mode === "Medical" || mode === "All";
+  const cols = [
+    { k: "sName", label: "Faculty Name" },
+    cols0.schol.bf && cols0.schol.bf.show && { k: "sBF", label: "Broad Field" },
+    cols0.schol.college && cols0.schol.college.show && { k: "sCollege", label: "College/School" },
+    showDeptCol && cols0.schol.dept && cols0.schol.dept.show && { k: "sDept", label: "Department(s)" },
+    showProgCol && cols0.schol.prog && cols0.schol.prog.show && { k: "sProg", label: "Program(s)" },
+    showMedCol && cols0.schol.medc && cols0.schol.medc.show && { k: "sMedC", label: "Medical" },
+    cols0.schol.disc && cols0.schol.disc.show && { k: "sDisc", label: "Discipline" },
+    { k: "totalCollab", label: "Total Collaborators" },
+    { k: "workType", label: "Collaboration Type" },
+    { k: "year", label: "Year" },
+    { k: "wid", label: "Collab ID" },
+    { k: "detail", label: "Collab Detail" },
+    { k: "title", label: "Collab Title" },
+    { k: "cInstD", label: "Collab Institution" },
+    { k: "cName", label: "Collab Faculty Name" },
+    cols0.collab.bf && cols0.collab.bf.show && { k: "cBF", label: "Collab Broad Field" },
+    cols0.collab.college && cols0.collab.college.show && { k: "cCollege", label: "Collab College/School" },
+    showDeptCol && cols0.collab.dept && cols0.collab.dept.show && { k: "cDept", label: "Collab Department(s)" },
+    showProgCol && cols0.collab.prog && cols0.collab.prog.show && { k: "cProg", label: "Collab Program(s)" },
+    showMedCol && cols0.collab.medc && cols0.collab.medc.show && { k: "cMedC", label: "Collab Medical" },
+    cols0.collab.disc && cols0.collab.disc.show && { k: "cDisc", label: "Collab Discipline" },
+  ].filter(Boolean);
+  buildHead(cols);
+
+  const col = cols.find(c => c.k === sortState.k) || cols[0];
+  // Default/tie-break order: Faculty Name, then Collaboration Type, then Year DESCENDING (most
+  // recent first - user request). Whatever column the user actively sorts by (col.k) still takes
+  // priority; these three just break ties consistently instead of falling back to an unrelated
+  // column like total collaborators.
+  const sorted = rows.slice().sort((a, b) => {
+    let av = a[col.k], bv = b[col.k];
+    if (typeof av === "string") { av = av.toLowerCase(); bv = ("" + bv).toLowerCase(); }
+    if (av < bv) return -sortState.d;
+    if (av > bv) return sortState.d;
+    let at = (a.workType || "").toLowerCase(), bt = (b.workType || "").toLowerCase();
+    if (at < bt) return -1;
+    if (at > bt) return 1;
+    return ("" + (b.year || "")).localeCompare("" + (a.year || ""), undefined, { numeric: true });
+  });
+
+  paginateAndRenderStatus(sorted.length, distinctWorks, `for current filters`);
+  const size = parseInt($("pageSize").value, 10) || 500;
+  const startIdx = (curPage - 1) * size;
+  const page = sorted.slice(startIdx, startIdx + size);
+
+  $("body").innerHTML = page.length ? page.map(r => `<tr>
+      <td class="scholar">${nameLink(r.sp, r.sName, r.sUnit1)}</td>
+      ${cols0.schol.bf && cols0.schol.bf.show ? `<td class="muted">${esc(r.sBF)}</td>` : ""}
+      ${cols0.schol.college && cols0.schol.college.show ? `<td class="muted">${esc(r.sCollege)}</td>` : ""}
+      ${showDeptCol && cols0.schol.dept && cols0.schol.dept.show ? `<td class="muted">${esc(r.sDept)}</td>` : ""}
+      ${showProgCol && cols0.schol.prog && cols0.schol.prog.show ? `<td class="muted">${esc(r.sProg)}</td>` : ""}
+      ${showMedCol && cols0.schol.medc && cols0.schol.medc.show ? `<td class="muted">${esc(r.sMedC)}</td>` : ""}
+      ${cols0.schol.disc && cols0.schol.disc.show ? `<td class="muted">${esc(r.sDisc)}</td>` : ""}
+      <td class="num">${r.totalCollab.toLocaleString()}</td>
+      <td>${esc(r.workType)}</td>
+      <td>${esc(r.year)}</td>
+      <td class="muted">${esc(r.wid)}</td>
+      <td class="muted">${esc(r.detail)}</td>
+      <td class="title">${esc(r.title)}</td>
+      <td class="muted">${esc(r.cInstD)}</td>
+      <td>${nameLink(r.cp, r.cName, r.sUnit1)}${pillHtml(r.rel)}</td>
+      ${cols0.collab.bf && cols0.collab.bf.show ? `<td class="muted">${esc(r.cBF)}</td>` : ""}
+      ${cols0.collab.college && cols0.collab.college.show ? `<td class="muted">${esc(r.cCollege)}</td>` : ""}
+      ${showDeptCol && cols0.collab.dept && cols0.collab.dept.show ? `<td class="muted">${esc(r.cDept)}</td>` : ""}
+      ${showProgCol && cols0.collab.prog && cols0.collab.prog.show ? `<td class="muted">${esc(r.cProg)}</td>` : ""}
+      ${showMedCol && cols0.collab.medc && cols0.collab.medc.show ? `<td class="muted">${esc(r.cMedC)}</td>` : ""}
+      ${cols0.collab.disc && cols0.collab.disc.show ? `<td class="muted">${esc(r.cDisc)}</td>` : ""}
+    </tr>`).join("") : `<tr><td colspan="${cols.length}" class="muted" style="padding:24px;text-align:center">No rows for this filter.</td></tr>`;
+}
+
+// Per-person rendering for the unique-works view: name link + small dept line
+// (institution for externals); discipline/school live in a labeled hover tooltip.
+// Long lists truncate to PERSON_LIMIT with a clickable "+ N more" per cell.
+const PERSON_LIMIT = 10;
+let lastUW = new Map(), lastShowRel = false, lastSelDepts = new Set();
+const escAttr = s => esc(s).replace(/"/g, "&quot;");
+
+// Pills are relative to the SELECTED unit(s): in the picked dept = within, other
+// MIT affiliation = across, no MIT affiliation = inter (any-overlap-wins).
+const _pUnits = p => [...p.depts, ...p.progs, ...p.medcs];
+function personPill(p) {
+  if (!p.isScholar && p.rel === 2) return pillHtml(2);
+  return pillHtml(_pUnits(p).some(d => lastSelDepts.has(d)) ? 0 : 1);
+}
+function personRelName(p) {
+  if (!p.isScholar && p.rel === 2) return REL_NAME[2];
+  return _pUnits(p).some(d => lastSelDepts.has(d)) ? REL_NAME[0] : REL_NAME[1];
+}
+
+function personHtml(p, withPill) {
+  const depts = [...p.depts].sort().join("; ");
+  const progs = [...p.progs].sort().join("; ");
+  const medcs = [...p.medcs].sort().join("; ");
+  const discs = [...p.discs].sort().join("; ");
+  const cols = [...p.colleges].sort().join("; ");
+  const isExt = p.rel === 2 && !p.isScholar;
+  // sub-line follows the Unit Type mode
+  const parts = [];
+  if (mode === "Department" || mode === "All") { if (depts) parts.push(depts); }
+  if (mode === "Program" || mode === "All") { if (progs) parts.push(progs); }
+  if (mode === "Medical" || mode === "All") { if (medcs) parts.push(medcs); }
+  const sub = isExt ? p.inst : parts.join("; ");
+  const tip = [p.name,
+    depts ? "Department(s): " + depts : "",
+    progs ? "Program(s): " + progs : "",
+    medcs ? "Medical: " + medcs : "",
+    discs ? "Discipline(s): " + discs : "",
+    cols ? "College / School: " + cols : "",
+    p.inst ? "Institution: " + p.inst : ""].filter(Boolean).join("\n");
+  return `<span class="uw-person" title="${escAttr(tip)}">${nameLink(p.pid, p.name, p.deptLink)}${withPill ? personPill(p) : ""}<br><span class="uw-sub">${esc(sub || "")}</span></span>`;
+}
+
+function personListHtml(list, withPill, wid, side, expanded) {
+  const show = expanded ? list : list.slice(0, PERSON_LIMIT);
+  let h = show.map(p => personHtml(p, withPill)).join("");
+  if (!expanded && list.length > PERSON_LIMIT)
+    h += `<button type="button" class="uw-more" data-wid="${escAttr(wid)}" data-side="${side}">+ ${(list.length - PERSON_LIMIT).toLocaleString()} more</button>`;
+  return h;
+}
+
+function renderUnique(rows, distinctWorks) {
+  const cols = [
+    { k: "title", label: "Collab Title" },
+    { k: "workType", label: "Collaboration Type" },
+    { k: "year", label: "Year" },
+    { k: "detail", label: "Collab Detail" },
+    { k: "nMit", label: "# MIT" },
+    { k: "mitLabel", label: "MIT Collaborators" },
+    { k: "nExt", label: "# External" },
+    { k: "extLabel", label: "External Collaborators" },
+  ];
+  buildHead(cols);
+  // Within/Across/Inter pills are only meaningful relative to a chosen unit — show them
+  // on people only when the Unit filter has a selection (user request).
+  lastSelDepts = new Set(selectedValues($("deptSel")));
+  const showRel = lastSelDepts.size > 0;
+  const uw = buildUniqueWorkRows(rows).map(w => ({ ...w,
+    mitLabel: w.mitList.map(p => p.name).join("; "),
+    extLabel: w.extList.map(p => p.name).join("; ") }));
+  const col = cols.find(c => c.k === sortState.k) || cols[0];
+  const sorted = uw.slice().sort((a, b) => {
+    let av = a[col.k], bv = b[col.k];
+    if (typeof av === "string") { av = av.toLowerCase(); bv = ("" + bv).toLowerCase(); }
+    if (av < bv) return -sortState.d;
+    if (av > bv) return sortState.d;
+    return 0;
+  });
+  paginateAndRenderStatus(sorted.length, distinctWorks, `distinct works (unique-works view)`);
+  const size = parseInt($("pageSize").value, 10) || 500;
+  const startIdx = (curPage - 1) * size;
+  const page = sorted.slice(startIdx, startIdx + size);
+  lastUW = new Map(page.map(w => [String(w.wid), w]));
+  lastShowRel = showRel;
+  $("body").innerHTML = page.length ? page.map(w => `<tr>
+      <td class="title">${esc(w.title)}</td>
+      <td>${esc(w.workType)}</td>
+      <td>${esc(w.year)}</td>
+      <td class="muted">${esc(w.detail)}</td>
+      <td class="num">${w.nMit}</td>
+      <td>${personListHtml(w.mitList, showRel, w.wid, "mit", false)}</td>
+      <td class="num">${w.nExt}</td>
+      <td>${personListHtml(w.extList, false, w.wid, "ext", false)}</td>
+    </tr>`).join("") : `<tr><td colspan="${cols.length}" class="muted" style="padding:24px;text-align:center">No works for this filter.</td></tr>`;
+}
+
+function paginateAndRenderStatus(total, distinctWorks, suffix) {
+  const size = parseInt($("pageSize").value, 10) || 500;
+  const pageCount = Math.max(1, Math.ceil(total / size));
+  if (curPage > pageCount) curPage = pageCount;
+  if (curPage < 1) curPage = 1;
+  $("pageIndicator").textContent = `Page ${curPage} of ${pageCount}`;
+  $("prevPage").disabled = curPage <= 1;
+  $("nextPage").disabled = curPage >= pageCount;
+  $("statusText").innerHTML = `<b>${distinctWorks.toLocaleString()}</b> distinct works &middot; <b>${total.toLocaleString()}</b> rows ${esc(suffix)}`;
+}
+
+// Faculty (Select Faculty) selection's own colleges/units/discs - used so picking a name
+// narrows the other three filters too, mirroring counts_v2.html's attrPool approach.
+function facultyAffiliations() {
+  if (!cur) return null;
+  const ids = new Set(selectedValues($("facultySel")));
+  if (!ids.size) return null;
+  const colleges = new Set(), units = new Set(), discs = new Set();
+  for (const r of cur.rows) {
+    if (!ids.has(r.sp)) continue;
+    if (r.sCollege) colleges.add(r.sCollege);
+    if (r.sUnit) units.add(r.sUnit);
+    if (r.sDisc) discs.add(r.sDisc);
+  }
+  return { colleges, units, discs };
+}
+
+// ===== College/Unit/Discipline/Faculty cascading filter option lists (mutual - every filter
+// narrows every other, generalizing the old one-directional College->Unit cascade). Pairwise
+// relationships (collegeToDepts/deptToColleges/discToUnits/unitToDiscs/discToColleges/
+// collegeToDiscs) are built in decodeInto from RAW per-row data, not from per-person aggregated
+// fields - see counts_v2.html HANDOFF notes on the Boyden multi-affiliation bug this avoids. =====
+function refreshCollegeDeptOptions() {
+  if (!cur) return;
+  const prevColleges = new Set(selectedValues($("collegeSel")));
+  const prevDepts = new Set(selectedValues($("deptSel")));
+  const c2d = cur.collegeToDepts, d2c = cur.deptToColleges;
+  const discFilter = new Set(selectedValues($("discSel")));
+  const fa = facultyAffiliations();
+
+  // ----- College options: narrowed by selected Unit(s), Discipline(s), Faculty -----
+  let collegeOpts;
+  if (prevDepts.size) {
+    collegeOpts = new Set();
+    for (const d of prevDepts) for (const c of (d2c.get(d) || [])) collegeOpts.add(c);
+  } else {
+    collegeOpts = new Set(c2d.keys());
+  }
+  if (discFilter.size) {
+    const allowed = new Set();
+    for (const d of discFilter) for (const c of (cur.discToColleges.get(d) || [])) allowed.add(c);
+    collegeOpts = new Set([...collegeOpts].filter(c => allowed.has(c)));
+  }
+  if (fa) collegeOpts = new Set([...collegeOpts].filter(c => fa.colleges.has(c)));
+  const colleges = [...collegeOpts].sort();
+  $("collegeSel").innerHTML = colleges.map(c =>
+    `<option value="${esc(c)}"${prevColleges.has(c) ? " selected" : ""}>${esc(c)}</option>`).join("");
+
+  // ----- Unit options: narrowed by selected College(s), Discipline(s), Faculty -----
+  let deptPool;
+  if (prevColleges.size) {
+    deptPool = new Set();
+    for (const c of prevColleges) for (const d of (c2d.get(c) || [])) deptPool.add(d);
+  } else {
+    deptPool = new Set();
+    for (const set of c2d.values()) for (const d of set) deptPool.add(d);
+  }
+  if (discFilter.size) {
+    const allowed = new Set();
+    for (const d of discFilter) for (const u of (cur.discToUnits.get(d) || [])) allowed.add(u);
+    deptPool = new Set([...deptPool].filter(u => allowed.has(u)));
+  }
+  if (fa) deptPool = new Set([...deptPool].filter(u => fa.units.has(u)));
+  const depts = [...deptPool].sort();
+  $("deptSel").innerHTML = depts.map(d =>
+    `<option value="${esc(d)}"${prevDepts.has(d) ? " selected" : ""}>${esc(d)}</option>`).join("");
+}
+
+function refreshDiscOptions() {
+  if (!cur) return;
+  if (!cur._discs) {
+    const s = new Set(), c = new Set(), y = new Set();
+    for (const g of cur.groups) {
+      for (const d of g.sDisc) s.add(d);
+      for (const d of g.cDisc) c.add(d);
+    }
+    for (const wid in cur.works) { const yr = String(cur.works[wid][2] || "").trim(); if (yr) y.add(yr); }
+    cur._discs = [...s].sort(); cur._cdiscs = [...c].sort();
+    cur._years = [...y].sort((a, b) => b.localeCompare(a, undefined, { numeric: true }));
+    cur._allDiscs = [...cur.discToUnits.keys()].sort();
+  }
+  // discSel (faculty side) narrows by selected College(s)/Unit(s)/Faculty; cdiscSel (collaborator
+  // side) and yearSel are independent axes and stay unfiltered, as before.
+  const prevDisc = new Set(selectedValues($("discSel")));
+  const collegeFilter = new Set(selectedValues($("collegeSel")));
+  const unitFilter = new Set(selectedValues($("deptSel")));
+  const fa = facultyAffiliations();
+  let discOpts = new Set(cur._allDiscs);
+  if (collegeFilter.size) {
+    const allowed = new Set();
+    for (const c of collegeFilter) for (const d of (cur.collegeToDiscs.get(c) || [])) allowed.add(d);
+    discOpts = new Set([...discOpts].filter(d => allowed.has(d)));
+  }
+  if (unitFilter.size) {
+    const allowed = new Set();
+    for (const u of unitFilter) for (const d of (cur.unitToDiscs.get(u) || [])) allowed.add(d);
+    discOpts = new Set([...discOpts].filter(d => allowed.has(d)));
+  }
+  if (fa) discOpts = new Set([...discOpts].filter(d => fa.discs.has(d)));
+  const discList = [...discOpts].sort();
+  $("discSel").innerHTML = discList.map(v => `<option value="${esc(v)}"${prevDisc.has(v) ? " selected" : ""}>${esc(v)}</option>`).join("");
+
+  const fill = (sel, vals) => {
+    const prev = new Set(selectedValues(sel));
+    sel.innerHTML = vals.map(v => `<option value="${esc(v)}"${prev.has(v) ? " selected" : ""}>${esc(v)}</option>`).join("");
+  };
+  fill($("cdiscSel"), cur._cdiscs); fill($("yearSel"), cur._years);
+}
+
+// ===== Faculty multi-select: options narrow to whoever still has a qualifying row under every
+// OTHER active filter (faculty selection itself excluded, so picking one name doesn't shrink the
+// list down to just itself) - same idea as the College->Unit cascade, generalized to every filter.
+function refreshFacultyOptions() {
+  if (!cur) return;
+  const prevFaculty = new Set(selectedValues($("facultySel")));
+  const f = currentFilters();
+  const noFacultyFilter = { ...f, faculty: new Set() };
+  const byWork = new Map();
+  for (const g of cur.groups) {
+    const w = cur.works[g.wid];
+    if (!w || !passesWorkFilters(w, noFacultyFilter)) continue;
+    if (!byWork.has(g.wid)) byWork.set(g.wid, []);
+    byWork.get(g.wid).push(g);
+  }
+  const pool = new Map(); // sp -> sName
+  for (const [, groups] of byWork) {
+    const collabCount = groups.length;
+    for (const g of groups) {
+      if (!passesGroupFilters(g, noFacultyFilter, collabCount)) continue;
+      pool.set(g.sp, g.sName);
+    }
+  }
+  const names = [...pool.entries()].sort((a, b) => a[1].localeCompare(b[1]));
+  $("facultySel").innerHTML = names.map(([pid, name]) =>
+    `<option value="${esc(pid)}"${prevFaculty.has(pid) ? " selected" : ""}>${esc(name)}</option>`).join("");
+  applyFacultySearchFilter();
+}
+
+// Purely visual: hides options that don't match the typed text, without touching selection state
+// (a selected-but-hidden option stays selected - standard <select> behavior).
+function applyFacultySearchFilter() {
+  const q = $("facultySearch").value.trim().toLowerCase();
+  [...$("facultySel").options].forEach(o => {
+    o.style.display = (!q || o.textContent.toLowerCase().includes(q)) ? "" : "none";
+  });
+}
+
+// Restore whatever was saved to shared storage (by this page or counts_simple.html) earlier
+// in the session. Runs once, the first time afterLoad() fires after page load - option lists
+// must already be populated (refreshCollegeDeptOptions/refreshDiscOptions, just above) before
+// select values can be applied. Faculty needs a second pass (see restoreSharedFaculty below)
+// since its option list isn't built until refreshFacultyOptions(), later in afterLoad().
+function restoreSharedFilters() {
+  const s = loadSharedFilters();
+  const applySel = (sel, vals) => { if (!Array.isArray(vals) || !vals.length) return; const set = new Set(vals); [...sel.options].forEach(o => { if (set.has(o.value)) o.selected = true; }); };
+  if (Array.isArray(s.colleges) && s.colleges.length) { applySel($("collegeSel"), s.colleges); refreshCollegeDeptOptions(); }
+  applySel($("deptSel"), s.units);
+  applySel($("discSel"), s.discipline);
+  applySel($("cdiscSel"), s.collabDiscipline);
+  if (s.interdisc === "yes" || s.interdisc === "no") $("interdisc").value = s.interdisc;
+  if (Array.isArray(s.types) && s.types.length) {
+    const set = new Set(s.types);
+    document.querySelectorAll("#typeCols input[data-t]").forEach(cb => { cb.checked = set.has(cb.dataset.t); });
+  }
+  if (s.maxCollab) $("maxCollab").value = s.maxCollab;
+  applySel($("yearSel"), s.years);
+  if (s.titleQ) $("titleFilter").value = s.titleQ;
+  if (s.detailQ) $("detailFilter").value = s.detailQ;
+}
+function restoreSharedFaculty() {
+  const s = loadSharedFilters();
+  if (!Array.isArray(s.facultyIds) || !s.facultyIds.length) return;
+  const set = new Set(s.facultyIds);
+  [...$("facultySel").options].forEach(o => { if (set.has(o.value)) o.selected = true; });
+}
+function currentSharedSnapshot() {
+  const f = currentFilters();
+  return {
+    unitType: mode,
+    colleges: [...f.colleges],
+    units: [...f.depts],
+    discipline: [...f.discs],
+    collabDiscipline: [...f.cdiscs],
+    interdisc: f.interdisc,
+    types: [...f.types],
+    maxCollab: $("maxCollab").value.trim(),
+    years: [...f.years],
+    titleQ: $("titleFilter").value,
+    detailQ: $("detailFilter").value,
+    facultyIds: [...f.faculty],
+  };
+}
+
+function afterLoad() {
+  refreshCollegeDeptOptions();
+  refreshDiscOptions();
+  if (!restoredFromShared) restoreSharedFilters();
+  refreshFacultyOptions();
+  if (!restoredFromShared) { restoreSharedFaculty(); restoredFromShared = true; }
+  curPage = 1;
+  render();
+}
+
+// ===== CSV export (uncapped - every filtered/sorted row, ignoring on-screen pagination) =====
+function downloadCsv() {
+  if (!cur) return;
+  const uniqueWorks = $("uniqueWorks").checked;
+  const { rows } = buildDisplayRows();
+  const cols0 = colState();
+  let hdr, lines;
+  if (uniqueWorks) {
+    const uw = buildUniqueWorkRows(rows);
+    lastSelDepts = new Set(selectedValues($("deptSel")));
+    const showRel = lastSelDepts.size > 0;
+    hdr = ["Collab Title", "Collaboration Type", "Year", "Collab Detail", "# MIT", "MIT Collaborators", "# External", "External Collaborators"];
+    lines = [hdr.join(",")];
+    uw.forEach(w => lines.push([
+      w.title, w.workType, w.year, w.detail,
+      w.nMit, w.mitList.map(p => showRel ? `${p.name} (${personRelName(p)})` : p.name).join("; "),
+      w.nExt, w.extList.map(p => p.name).join("; "),
+    ].map(v => `"${("" + v).replace(/"/g, '""')}"`).join(",")));
+  } else {
+    const showDeptCol = mode === "Department" || mode === "All";
+    const showProgCol = mode === "Program" || mode === "All";
+    const showMedCol = mode === "Medical" || mode === "All";
+    hdr = ["Faculty Name"];
+    if (cols0.schol.bf && cols0.schol.bf.show) hdr.push("Broad Field");
+    if (cols0.schol.college && cols0.schol.college.show) hdr.push("College/School");
+    if (showDeptCol && cols0.schol.dept && cols0.schol.dept.show) hdr.push("Department(s)");
+    if (showProgCol && cols0.schol.prog && cols0.schol.prog.show) hdr.push("Program(s)");
+    if (showMedCol && cols0.schol.medc && cols0.schol.medc.show) hdr.push("Medical");
+    if (cols0.schol.disc && cols0.schol.disc.show) hdr.push("Discipline");
+    hdr.push("Total Collaborators", "Collaboration Type", "Year", "Collab ID", "Collab Detail", "Collab Title", "Collab Institution", "Collab Faculty Name", "Relationship");
+    if (cols0.collab.bf && cols0.collab.bf.show) hdr.push("Collab Broad Field");
+    if (cols0.collab.college && cols0.collab.college.show) hdr.push("Collab College/School");
+    if (showDeptCol && cols0.collab.dept && cols0.collab.dept.show) hdr.push("Collab Department(s)");
+    if (showProgCol && cols0.collab.prog && cols0.collab.prog.show) hdr.push("Collab Program(s)");
+    if (showMedCol && cols0.collab.medc && cols0.collab.medc.show) hdr.push("Collab Medical");
+    if (cols0.collab.disc && cols0.collab.disc.show) hdr.push("Collab Discipline");
+    lines = [hdr.join(",")];
+    rows.forEach(r => {
+      const vals = [r.sName];
+      if (cols0.schol.bf && cols0.schol.bf.show) vals.push(r.sBF);
+      if (cols0.schol.college && cols0.schol.college.show) vals.push(r.sCollege);
+      if (showDeptCol && cols0.schol.dept && cols0.schol.dept.show) vals.push(r.sDept);
+      if (showProgCol && cols0.schol.prog && cols0.schol.prog.show) vals.push(r.sProg);
+      if (showMedCol && cols0.schol.medc && cols0.schol.medc.show) vals.push(r.sMedC);
+      if (cols0.schol.disc && cols0.schol.disc.show) vals.push(r.sDisc);
+      vals.push(r.totalCollab, r.workType, r.year, r.wid, r.detail, r.title, r.cInstD, r.cName, REL_NAME[r.rel]);
+      if (cols0.collab.bf && cols0.collab.bf.show) vals.push(r.cBF);
+      if (cols0.collab.college && cols0.collab.college.show) vals.push(r.cCollege);
+      if (showDeptCol && cols0.collab.dept && cols0.collab.dept.show) vals.push(r.cDept);
+      if (showProgCol && cols0.collab.prog && cols0.collab.prog.show) vals.push(r.cProg);
+      if (showMedCol && cols0.collab.medc && cols0.collab.medc.show) vals.push(r.cMedC);
+      if (cols0.collab.disc && cols0.collab.disc.show) vals.push(r.cDisc);
+      lines.push(vals.map(v => `"${("" + v).replace(/"/g, '""')}"`).join(","));
+    });
+  }
+  const blob = new Blob([lines.join("\n")], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.download = `MIT_collabs_details_${mode}.csv`;
+  a.href = url;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ===== Wiring =====
+function refreshCascade() { refreshCollegeDeptOptions(); refreshDiscOptions(); refreshFacultyOptions(); }
+function onFilterChange() { refreshCascade(); curPage = 1; render(); saveSharedFilters(currentSharedSnapshot()); }
+
+$("uk").querySelectorAll("button").forEach(b => b.onclick = () => {
+  mode = b.dataset.uk;
+  $("uk").querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
+  $("collegeSel").innerHTML = ""; $("deptSel").innerHTML = "";
+  saveSharedFilters({ unitType: mode });
+  loadMode();
+});
+$("collegeSel").onchange = () => { refreshCollegeDeptOptions(); onFilterChange(); };
+$("discSel").onchange = onFilterChange;
+$("cdiscSel").onchange = onFilterChange;
+$("discAll").onclick = () => { [...$("discSel").options].forEach(o => o.selected = false); onFilterChange(); };
+$("cdiscAll").onclick = () => { [...$("cdiscSel").options].forEach(o => o.selected = false); onFilterChange(); };
+$("clearFilters").onclick = () => {
+  $("scope").value = "all"; $("interdisc").value = "all";
+  ["maxCollab", "detailFilter", "titleFilter", "facultySearch"].forEach(id => $(id).value = "");
+  [$("collegeSel"), $("deptSel"), $("discSel"), $("cdiscSel"), $("yearSel"), $("facultySel")].forEach(sel => [...sel.options].forEach(o => o.selected = false));
+  document.querySelectorAll("#typeCols input[data-t]").forEach(cb => cb.checked = true);
+  refreshCollegeDeptOptions(); refreshDiscOptions(); applyFacultySearchFilter(); onFilterChange();
+};
+$("deptSel").onchange = onFilterChange;
+$("collegeAll").onclick = () => { [...$("collegeSel").options].forEach(o => o.selected = false); refreshCollegeDeptOptions(); onFilterChange(); };
+$("deptAll").onclick = () => { [...$("deptSel").options].forEach(o => o.selected = false); onFilterChange(); };
+$("scope").onchange = onFilterChange;
+$("interdisc").onchange = onFilterChange;
+$("maxCollab").oninput = onFilterChange;
+$("yearSel").onchange = onFilterChange;
+$("yearAll").onclick = () => { [...$("yearSel").options].forEach(o => o.selected = false); onFilterChange(); };
+$("detailFilter").oninput = onFilterChange;
+$("titleFilter").oninput = onFilterChange;
+$("facultySel").onchange = onFilterChange;
+$("facultyAll").onclick = () => { [...$("facultySel").options].forEach(o => o.selected = false); onFilterChange(); };
+$("facultySearch").oninput = applyFacultySearchFilter;
+document.querySelectorAll("#typeCols input[data-t]").forEach(cb => cb.onchange = onFilterChange);
+document.querySelectorAll("#scholCols input[type=checkbox], #collabCols input[type=checkbox]").forEach(cb => cb.onchange = onFilterChange);
+$("uniqueWorks").onchange = onFilterChange;
+$("downloadCsv").onclick = downloadCsv;
+$("pageSize").onchange = () => { curPage = 1; render(); };
+$("prevPage").onclick = () => { if (curPage > 1) { curPage--; render(); } };
+$("nextPage").onclick = () => { curPage++; render(); };
+$("body").addEventListener("click", e => {
+  const b = e.target.closest(".uw-more");
+  if (!b) return;
+  const w = lastUW.get(b.dataset.wid);
+  if (!w) return;
+  const side = b.dataset.side;
+  b.closest("td").innerHTML = personListHtml(side === "mit" ? w.mitList : w.extList,
+    side === "mit" && lastShowRel, w.wid, side, true);
+});
+
+// Apply a saved Unit Type before the first load, if one was set on this page or on
+// counts_simple.html earlier in the session - clicking the button runs loadMode() itself.
+(function initialLoad() {
+  const s = loadSharedFilters();
+  if (s.unitType && ["Department", "Program", "Medical", "All"].includes(s.unitType) && s.unitType !== mode) {
+    const btn = $("uk").querySelector(`button[data-uk="${s.unitType}"]`);
+    if (btn) { btn.click(); return; }
+  }
+  loadMode();
+})();
+// build: 2026-07-03 cross-link + unique-works rework
+</script>
+<script src="agent_widget.js" defer></script>
+</body>
+</html>
