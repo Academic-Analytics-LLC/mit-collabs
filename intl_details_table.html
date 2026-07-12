@@ -112,6 +112,7 @@ footer{padding:10px 20px;color:#5a6a80;font-size:11px}
   padding:3px 2px;border-bottom:2px solid transparent}
 .aa-nav a:hover{color:#fff}
 .aa-nav a.cur{color:#fff;border-bottom-color:#0066b4}
+.aa-nav .divider{display:block;width:2px;align-self:stretch;background:#fff;margin:0 6px}
 </style>
 </head>
 <body>
@@ -123,8 +124,10 @@ footer{padding:10px 20px;color:#5a6a80;font-size:11px}
   <a href="chord_viz.html">Chord</a>
   <a href="matrix_viz.html">Matrix</a>
   <a href="insights.html">Insights</a>
-  <a href="intl_details_table.html" class="cur">Int'l Collabs</a>
-  <a href="intl_map.html">Int'l Map</a>
+  <span class="divider"></span>
+  <a href="intl_details_table.html" class="cur">International Collabs</a>
+  <a href="intl_map.html">International Map</a>
+  <a href="intl_trends.html">International Trends</a>
 </div>
 <header>
   <h1>MIT International Collaborations</h1>
@@ -222,8 +225,6 @@ footer{padding:10px 20px;color:#5a6a80;font-size:11px}
   <thead><tr id="head"></tr></thead>
   <tbody id="body"></tbody>
 </table></div>
-<footer>Source: <code>MitInternationalCollabsLong.csv</code> &middot; MIT scholars &times; external-institution collaborations, 2018&ndash;2025 &middot; one row per scholar&times;work&times;partner institution, joined across any additional MIT-side affiliations &mdash; do not sum rows as a work count, use distinct works. Every collaborator here is external to MIT by construction (no internal MIT&ndash;MIT rows in this file).</footer>
-
 <script>
 const DATA_DIR = "data/intl";
 const UT_NAME = ["Department","Program","OAU"];

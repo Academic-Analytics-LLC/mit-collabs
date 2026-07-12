@@ -87,8 +87,7 @@ no "Clinical" in UI text) is specific to AAD2024 pages only.
 - Matrix + chord global data are SAS-rebuilt (2026-07-03) — cross-unit numbers intentionally
   changed from the prototype (e.g. Physics×EAPS 289→81).
 - (2026-07-10) `counts_table.html` retired sitewide (nav removed everywhere, file deleted from
-  dev + MITCollabs copies; the OneDrive `collab-mit` copy's file still needs manual deletion -
-  see HANDOFF.md). `counts_simple.html` migrated off the prototype pipeline onto SAS
+  disk). `counts_simple.html` migrated off the prototype pipeline onto SAS
   (`details_base.csv`) - work universe now 16,747 (was 16,738), resolving the "rebuild from SAS
   or document convention" open item below. Interim data was computed via a Python
   re-implementation of the formulas (no SAS engine available in the build sandbox);
@@ -98,26 +97,46 @@ no "Clinical" in UI text) is specific to AAD2024 pages only.
 
 ## Key page
 - key.html = sidebar-TOC documentation page (user-approved layout), first nav item on all
-  8 pages, AcA blue styling, AAD 2024 time windows box (years bumped +1 from the 2023 box),
-  no "Data source" callout, sentence reads "…built from the Academic Analytics comparative
-  database AAD2024-2904."
+  10 live pages, AcA blue styling, AAD 2024 time windows box (years bumped +1 from the 2023
+  box), no "Data source" callout, sentence reads "…built from the Academic Analytics
+  comparative database AAD2024-2904."
 
 ## Page naming
-- The page at `counts_simple.html` is called just **"Counts"** everywhere in the UI (nav,
+- Live filenames are `counts_v2.html` and `details_v2.html` (renamed 2026-07-10 from
+  `counts_simple.html`/`details_table.html` to rule out browser-caching confusion; the old
+  filenames are retired everywhere in the nav). Internal script/JSON names
+  (`build_counts_simple_v3/v4.py`, `counts_simple_v3.json`, etc.) were intentionally left
+  unchanged — only page filenames and nav links were updated.
+- The page at `counts_v2.html` is called just **"Counts"** everywhere in the UI (nav,
   key.html TOC/headings/body) — the "(Simple)" disambiguator was dropped 2026-07-10 once
   `counts_table.html` ("Counts (Partners)") was retired sitewide, so there's no longer a
-  second "Counts" page to disambiguate against. The filename (`counts_simple.html`) and
-  internal script/JSON names (`build_counts_simple_v3.py`, `counts_simple_v3.json`, etc.)
-  are unaffected — only user-facing text changed.
+  second "Counts" page to disambiguate against.
 
 ## Design standards
 - AcA Blue #254467 (rgb 37,68,103) headers with white text; Open Sans body + Crimson Text
   headings; shared .aa-nav on every page (Key first, current page class="cur").
-- (2026-07-10, requested, NOT YET IMPLEMENTED - see HANDOFF.md) Int'l Collabs / Int'l Map use a
+- (2026-07-11, DONE) International Collabs / International Map / International Trends use a
   different dataset from the AAD2024 pages (see "International Collaborations page" section
-  above) and should look visually separated in `.aa-nav`, not just another tab in the same row:
-  add a thick white vertical divider between Insights and Int'l Collabs, push Int'l Collabs/Int'l
-  Map to the right of that divider, and spell out "Int'l" as "International" in both link labels.
+  above) and are visually separated in `.aa-nav`: a thick white vertical divider sits between
+  Insights and International Collabs, and both link labels are spelled out in full
+  ("International", not "Int'l"). Applied to all shared-nav pages.
+- (2026-07-11, DONE) No "Source: ..." provenance/methodology footers on live pages — user chose
+  "remove footers everywhere" over keeping them on some pages. Applied to `counts_v2.html`,
+  `key.html`, `matrix_viz.html`, `intl_details_table.html`, `intl_map.html` (the only pages that
+  had them). Methodology explanations users still need live inline near the relevant control
+  instead (e.g. Counts' `.methodology` card below its header).
+
+## International Trends page (`intl_trends.html`) — conventions specific to this page
+- Unit/college picker is a single multi-select grouped into `<optgroup>`s by type (Colleges /
+  Schools → Departments → Programs → OAUs), ordered BIG → SMALL like every other level picker,
+  rather than one flat mixed list — user explicitly asked for units and colleges to be visually
+  separated, not jumbled together.
+- Animated "Play" reveal (draws each selected anchor's line forward year-by-year via an SVG
+  clipPath) is the chosen visualization style over a static chart — user's explicit pick when
+  asked what kind of moving/animated visual they wanted.
+- Page must fit one screen with no scroll (viewport-height flex layout, same precedent as
+  `network_viz.html`'s canvas page) — an earlier version that forced scrolling to see the whole
+  chart was explicitly rejected.
 
 ## Details page behavior (continued)
 - (2026-07-10) Details page's College/Unit/Discipline/Faculty filters cascade MUTUALLY, matching

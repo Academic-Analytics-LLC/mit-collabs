@@ -1,6 +1,6 @@
 @echo off
-REM Double-click this to preview the Details page (and other HTML pages) locally.
-REM Serves this folder on http://localhost:8765 and opens details_table.html.
+REM Double-click this to preview the site locally.
+REM Serves this folder on http://localhost:8765 and opens key.html (the site's landing page).
 REM Close the "MIT Collab Server" window it opens to stop the server.
 
 cd /d "%~dp0"
@@ -21,4 +21,4 @@ start "MIT Collab Server" cmd /k npx serve -l 8765 .
 
 :opened
 timeout /t 2 /nobreak >nul
-start "" "http://localhost:8765/details_table.html"
+start "" "http://localhost:8765/key.html"

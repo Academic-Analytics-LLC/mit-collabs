@@ -48,6 +48,11 @@ async function getSummary(env) {
 }
 
 async function askClaude(question, summaryJson, env) {
+  if (!env.ANTHROPIC_API_KEY) {
+    throw new Error(
+      "ANTHROPIC_API_KEY secret is not set on this Worker. Run: wrangler secret put ANTHROPIC_API_KEY (from the worker/ folder)."
+    );
+  }
   const system = `You answer natural-language questions about the MIT Collaboration Network \
 (Academic Analytics, AAD2024-2904) using ONLY the JSON data below. It contains, per MIT \
 department/college/institution and per Unit Type (Department vs Program, never mix the two \
@@ -68,6 +73,9 @@ work type is fine.
 DATA:
 ${summaryJson}`;
 
+  const keyLen = (env.ANTHROPIC_API_KEY || "").length;
+  console.log(`[askClaude] key length=${keyLen} model=${ANTHROPIC_MODEL} summaryJson length=${summaryJson.length} question="${question}"`);
+
   const r = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
@@ -82,9 +90,17 @@ ${summaryJson}`;
       messages: [{ role: "user", content: question }],
     }),
   });
+
+  const allHeaders = [...r.headers.entries()].map(([k, v]) => `${k}: ${v}`).join(" | ");
+  console.log(`[askClaude] response status=${r.status} statusText="${r.statusText}" headers=[${allHeaders}]`);
+
   if (!r.ok) {
     const t = await r.text();
-    throw new Error(`Anthropic API error ${r.status}: ${t.slice(0, 300)}`);
+    const ct = r.headers.get("content-type") || "(none)";
+    console.log(`[askClaude] error body (len=${t.length}): ${t}`);
+    throw new Error(
+      `Anthropic API error ${r.status} (content-type: ${ct}, body length: ${t.length}): ${t.slice(0, 300) || "(empty body)"}`
+    );
   }
   const data = await r.json();
   return (data.content || []).map((b) => b.text || "").join("").trim() || "(no answer text returned)";

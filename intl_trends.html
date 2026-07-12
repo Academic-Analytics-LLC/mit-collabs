@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MIT International Collaborations — Trends</title>
+<!--
+  INTERNATIONAL TRENDS — year-over-year view of the international collaborations dataset
+  (data/intl/, built by data/build_intl_scan.py + data/build_intl_merge2.py from
+  data/MitInternationalCollabsLong.csv). Unlike intl_details_table.html (row-grain explorer),
+  this page picks one or more MIT-side anchors (departments/programs/OAUs/colleges, from the
+  SAME anchors.json used by intl_details_table.html — college-kind entries are already
+  pre-aggregated server-side, so selecting a college needs no client-side merging) and plots a
+  metric per year as a line chart, one line per selected anchor.
+
+  v2 (2026-07-12 rework), per feedback on v1:
+  - Whole-page layout now fills exactly one viewport (body height:100vh, overflow:hidden — same
+    precedent as network_viz.html's canvas layout) with the chart itself as the one flex:1 area
+    that absorbs whatever space controls/table/footer don't need, instead of a fixed oversized
+    SVG that forced page scrolling just to see the graph.
+  - The "Select Unit(s)/College(s)" picker is grouped into <optgroup>s (Colleges/Schools ->
+    Departments -> Programs -> OAUs, big-to-small per this site's own Level-ordering convention)
+    instead of one flat mixed list, so it's visually clear these are MIT organizational units at
+    different grains, not an undifferentiated jumble.
+  - Added a Play/Pause control (status bar, right side) that animates the chart drawing itself in
+    left-to-right over ~3.2s via an SVG clipPath reveal (the underlying <path>/<circle> elements
+    are always the complete, correct data — only their visibility is animated, so the animation
+    is purely cosmetic and never affects the numbers in the table/CSV).
+
+  Only the anchors the user actually selects are fetched (not the whole dataset) — same lazy-load
+  principle as intl_details_table.html's per-Unit-Type batch fetch, just scoped even tighter here
+  since a trends comparison is normally a handful of units, not "every department at once."
+
+  Metrics (per anchor, per year, computed from that anchor's own rows_by_work + works):
+   - Distinct Works: works with >=1 row passing the current Country/Partner Type/Work Type filters.
+   - Partner Institutions: distinct collaborator institutions across those qualifying rows.
+   - Collaboration Instances: total qualifying rows (scholar x work x institution triples) — the
+     same Works-vs-Collaborations distinction used on the Counts page.
+
+  Country filter options are derived from whichever anchors are currently loaded (fetching the
+  full ~129-country list up front would mean fetching every anchor file just for a dropdown) —
+  hint text on that control says so.
+
+  DESIGN TOKENS — copied from intl_details_table.html, keep in sync:
+    --navy:#254467  --ink:#052448  --bg:#f7f7f7  --card:#fff
+    --text:#212529  --accent:#0066b4  --line:#e2e5ea
+    Fonts: Open Sans (body), Crimson Text (headings)
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Text:wght@600;700&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#254467;--ink:#052448;--bg:#f7f7f7;--card:#fff;--text:#212529;--accent:#0066b4;--line:#e2e5ea;}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font:14px/1.4 'Open Sans',-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:var(--text);background:var(--bg);
+  display:flex;flex-direction:column;height:100vh;overflow:hidden}
+header{background:var(--navy);color:#fff;padding:10px 20px;flex-shrink:0}
+h1{font-family:'Crimson Text',serif;font-size:18px;font-weight:700;margin-bottom:6px;letter-spacing:.01em}
+.hdr-row{display:flex;align-items:flex-start;gap:18px}
+.hdr-row .controls{flex:1;min-width:0}
+.hdr-actions{display:flex;flex-direction:column;gap:8px;flex-shrink:0;width:170px}
+.hdr-actions .btn{width:100%;white-space:nowrap}
+.controls{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:flex-end}
+.ctl{display:flex;flex-direction:column;gap:3px}
+.ctl label{font-size:10px;font-weight:600;color:rgba(255,255,255,.65);text-transform:uppercase;letter-spacing:.05em}
+.ctl .hint{font-size:9.5px;font-weight:400;color:rgba(255,255,255,.5);text-transform:none;letter-spacing:0}
+select,input[type=text]{font:13px inherit;padding:5px 8px;border:1px solid rgba(255,255,255,.25);border-radius:6px;
+  background:rgba(255,255,255,.12);color:#fff;min-width:150px}
+select option,select optgroup{background:var(--navy);color:#fff}
+select optgroup{font-style:normal;font-weight:700;color:rgba(255,255,255,.6)}
+select[multiple]{min-height:64px}
+input[type=text]{background:#fff;color:var(--text);border-color:var(--line);min-width:150px}
+.seg{display:inline-flex;border:1px solid rgba(255,255,255,.25);border-radius:6px;overflow:hidden}
+.seg button{font:13px inherit;border:0;background:transparent;padding:5px 12px;cursor:pointer;color:rgba(255,255,255,.65)}
+.seg button.on{background:#fff;color:var(--navy);font-weight:700}
+.btn{font:13px inherit;font-weight:700;padding:6px 14px;border-radius:6px;border:1px solid rgba(255,255,255,.3);
+  background:rgba(255,255,255,.14);color:#fff;cursor:pointer}
+.btn:hover{background:rgba(255,255,255,.24)}
+.btn.primary{background:#fff;color:var(--navy)}
+.btn.primary:hover{background:#e9edf3}
+.chkgrp{display:flex;flex-wrap:wrap;gap:3px 12px}
+.chkgrp label{display:inline-flex;gap:5px;align-items:center;font-size:12px;font-weight:500;text-transform:none;
+  letter-spacing:0;color:#fff;cursor:pointer}
+.sidegrp{display:flex;flex-direction:column;gap:4px;padding:5px 10px;border:1px solid rgba(255,255,255,.2);border-radius:6px;background:transparent}
+.sidegrp .ttl{font-size:10px;font-weight:700;color:rgba(255,255,255,.75);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px}
+.status{padding:6px 20px;color:#5a6a80;font-size:12.5px;background:var(--card);border-bottom:1px solid var(--line);
+  flex-shrink:0;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.status b{color:var(--ink)}
+.playCtl{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.playCtl .btn{padding:4px 12px;font-size:12px}
+.chartWrap{flex:1;min-height:0;display:flex;flex-direction:column;padding:8px 20px 2px;background:var(--card)}
+.chartSvgHolder{flex:1;min-height:0;position:relative}
+#chart{width:100%;height:100%;display:block}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;margin:4px 0 2px;font-size:11.5px;color:var(--text);flex-shrink:0}
+.legend-item{display:inline-flex;align-items:center;gap:6px}
+.swatch{width:11px;height:11px;border-radius:2px;display:inline-block;flex-shrink:0}
+.metricNote{font-size:11px;color:#5a6a80;margin:0 0 6px;flex-shrink:0}
+.tableOuter{flex-shrink:0;max-height:20vh;overflow:auto;border-top:1px solid var(--line)}
+table{border-collapse:collapse;width:100%;background:var(--card);font-size:12.5px}
+thead th{position:sticky;top:0;background:#eef1f5;border-bottom:2px solid var(--line);padding:6px 10px;text-align:right;
+  font-weight:700;font-size:11px;white-space:nowrap;color:var(--ink)}
+thead th:first-child{text-align:left}
+tbody td{padding:5px 10px;border-bottom:1px solid var(--line);text-align:right;font-variant-numeric:tabular-nums}
+tbody td:first-child{text-align:left;font-weight:600}
+tbody tr:hover{background:#f5f8fb}
+.muted{color:#5a6a80}
+footer{padding:6px 20px;color:#5a6a80;font-size:10.5px;flex-shrink:0;background:var(--card);border-top:1px solid var(--line)}
+.aa-nav{background:#052448;padding:7px 20px;display:flex;gap:18px;flex-shrink:0;
+  font:12px 'Open Sans',-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif}
+.aa-nav a{color:rgba(255,255,255,.7);text-decoration:none;font-weight:600;letter-spacing:.02em;
+  padding:3px 2px;border-bottom:2px solid transparent}
+.aa-nav a:hover{color:#fff}
+.aa-nav a.cur{color:#fff;border-bottom-color:#0066b4}
+.aa-nav .divider{display:block;width:2px;align-self:stretch;background:#fff;margin:0 6px}
+</style>
+</head>
+<body>
+<div class="aa-nav">
+  <a href="key.html">Key</a>
+  <a href="details_v2.html">Details</a>
+  <a href="counts_v2.html">Counts</a>
+  <a href="network_viz.html">Network</a>
+  <a href="chord_viz.html">Chord</a>
+  <a href="matrix_viz.html">Matrix</a>
+  <a href="insights.html">Insights</a>
+  <span class="divider"></span>
+  <a href="intl_details_table.html">International Collabs</a>
+  <a href="intl_map.html">International Map</a>
+  <a href="intl_trends.html" class="cur">International Trends</a>
+</div>
+<header>
+  <h1>MIT International Collaborations — Trends by Year</h1>
+  <div class="hdr-row">
+  <div class="controls">
+    <div class="ctl" style="min-width:250px">
+      <label>Select MIT Unit(s)/College(s) to Compare <span class="hint">(grouped by type below; each becomes its own line)</span></label>
+      <input type="text" id="anchorSearch" placeholder="type a name&hellip;" style="margin-bottom:4px;min-width:250px">
+      <select id="anchorSel" multiple size="6" style="min-width:250px"></select>
+    </div>
+
+    <div class="ctl"><label>Metric</label>
+      <div class="seg" id="metricSeg">
+        <button data-m="works" class="on">Distinct Works</button>
+        <button data-m="insts">Partner Institutions</button>
+        <button data-m="rows">Collaboration Instances</button>
+      </div></div>
+
+    <div class="ctl"><label>Partner Type <span class="hint" title="Academic = Colleges, Universities, and Professional Schools; everything else (companies, hospitals, government, etc.) is Non-Academic.">(academic vs. industry/gov't)</span></label>
+      <select id="partnerType">
+        <option value="all" selected>All</option>
+        <option value="Academic">Academic</option>
+        <option value="Non-Academic">Non-Academic</option>
+      </select></div>
+
+    <div class="ctl"><label>Select Country/Countries <span class="hint">(collaborating institutions' country; options reflect units selected above)</span></label>
+      <select id="countrySel" multiple></select>
+      <div style="display:flex;gap:4px;margin-top:4px">
+        <button type="button" class="btn" id="countryAll">All</button>
+        <button type="button" class="btn" id="countryAllButUS" title="Select every country except United States">All but US</button>
+      </div></div>
+
+    <div class="ctl sidegrp"><span class="ttl">Work Type</span>
+      <div class="chkgrp" id="typeCols">
+        <label><input type="checkbox" data-t="Article" checked> Article</label>
+        <label><input type="checkbox" data-t="Conference Proceeding" checked> Conf. Proceeding</label>
+      </div>
+    </div>
+  </div>
+  <div class="hdr-actions">
+    <button type="button" class="btn" id="clearFilters">Clear Filters</button>
+    <button type="button" class="btn primary" id="downloadCsv">Download Data (CSV)</button>
+  </div>
+  </div>
+</header>
+<div class="status">
+  <span id="statusText">Select one or more units above to see their trend.</span>
+  <div class="playCtl">
+    <button type="button" class="btn" id="playBtn">&#9654; Play</button>
+  </div>
+</div>
+<div class="chartWrap">
+  <div class="chartSvgHolder">
+    <svg id="chart" viewBox="0 0 900 420" preserveAspectRatio="xMidYMid meet"></svg>
+  </div>
+  <div class="legend" id="legend"></div>
+  <div class="metricNote" id="metricNote"></div>
+</div>
+<div class="tableOuter"><table>
+  <thead><tr id="tableHead"></tr></thead>
+  <tbody id="tableBody"></tbody>
+</table></div>
+<footer>Reuses <code>data/intl/anchors.json</code> and per-anchor JSON already built for International Collabs &middot; only the units you select above are fetched.</footer>
+
+<script>
+const DATA_DIR = "data/intl";
+const ACADEMIC_NAICS = "Colleges, Universities, and Professional Schools";
+const COLORS = ["#0066b4","#c2410c","#1f7a4d","#7a4ac6","#9a6a00","#c23b6b","#2b8a9e","#4a5568","#b45309","#0f766e"];
+const METRIC_NOTE = {
+  works: "Distinct Works: each qualifying paper/proceeding counted once for that year, no matter how many MIT co-authors or partner institutions it has.",
+  insts: "Partner Institutions: distinct collaborating institutions across this unit's qualifying works that year (not co-author headcount).",
+  rows: "Collaboration Instances: total qualifying (scholar × work × partner institution) rows — a work with several MIT co-authors and/or several partner institutions counts more than once here.",
+};
+const OAU_GROUP_LABEL = "OAUs (Labs / Centers / Institutes)";
+
+let anchorsIndex = [];
+const anchorCache = new Map(); // key -> raw payload {strs, people, works, rows_by_work}
+let selectedAnchors = []; // array of anchor keys, in selection order (also line order/color order)
+let allSeries = new Map(); // anchorKey -> Map(year -> {works:Set, insts:Set, rows:number})
+let allYears = [];
+let lastPlotW = 0; // plot width in SVG user units, for the play/pause reveal animation
+
+const $ = id => document.getElementById(id);
+const esc = s => (s == null ? "" : ("" + s)).replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+const selectedValues = sel => [...sel.selectedOptions].map(o => o.value);
+
+async function fetchJson(path) {
+  const r = await fetch(path);
+  if (!r.ok) throw new Error(`fetch ${path} failed: ${r.status}`);
+  return r.json();
+}
+
+async function ensureAnchorsIndex() {
+  if (anchorsIndex.length) return;
+  const idx = await fetchJson(`${DATA_DIR}/anchors.json`);
+  anchorsIndex = idx.anchors.slice().sort((a, b) => a.label.localeCompare(b.label));
+}
+
+function anchorMeta(key) { return anchorsIndex.find(a => a.key === key); }
+function anchorLabel(key) { const a = anchorMeta(key); return a ? a.label : key; }
+
+async function loadAnchor(key) {
+  if (anchorCache.has(key)) return anchorCache.get(key);
+  const a = anchorMeta(key);
+  if (!a) return null;
+  const payload = await fetchJson(`${DATA_DIR}/${a.file}`);
+  anchorCache.set(key, payload);
+  return payload;
+}
+
+function workTypeName(w) { return (w[4] === "1" || w[4] === 1) ? "Conference Proceeding" : "Article"; }
+
+function currentFilters() {
+  return {
+    countries: new Set(selectedValues($("countrySel"))),
+    partnerType: $("partnerType").value,
+    types: new Set([...document.querySelectorAll("#typeCols input[data-t]")].filter(x => x.checked).map(x => x.dataset.t)),
+  };
+}
+function currentMetric() { return $("metricSeg").querySelector("button.on").dataset.m; }
+
+// Per-year buckets for ONE anchor's payload under current Country/Partner Type/Work Type filters.
+// A work "counts" for its year if at least one of its rows passes the row-level filters
+// (country, partner type) - same "any qualifying collaboration" convention used elsewhere on
+// this site (e.g. Counts page's "All" scope).
+function computeSeries(payload, f) {
+  const strs = payload.strs, works = payload.works, rbw = payload.rows_by_work;
+  const byYear = new Map();
+  for (const wid in rbw) {
+    const w = works[wid];
+    if (!w) continue;
+    if (f.types.size && !f.types.has(workTypeName(w))) continue;
+    const year = String(w[2] || "").trim();
+    if (!year) continue;
+    const rows = rbw[wid];
+    let qualifying = 0;
+    const instsThisWork = new Set();
+    for (const e of rows) {
+      const country = strs[e[6]] || "";
+      const naics = strs[e[7]] || "";
+      const partnerType = naics === ACADEMIC_NAICS ? "Academic" : "Non-Academic";
+      if (f.countries.size && !f.countries.has(country)) continue;
+      if (f.partnerType !== "all" && partnerType !== f.partnerType) continue;
+      qualifying++;
+      instsThisWork.add(strs[e[4]] || "");
+    }
+    if (!qualifying) continue;
+    if (!byYear.has(year)) byYear.set(year, { works: new Set(), insts: new Set(), rows: 0 });
+    const yb = byYear.get(year);
+    yb.works.add(wid);
+    for (const inst of instsThisWork) yb.insts.add(inst);
+    yb.rows += qualifying;
+  }
+  return byYear;
+}
+
+function metricValue(bucket, metric) {
+  if (!bucket) return 0;
+  if (metric === "works") return bucket.works.size;
+  if (metric === "insts") return bucket.insts.size;
+  return bucket.rows;
+}
+
+function refreshCountryOptions() {
+  const prev = new Set(selectedValues($("countrySel")));
+  const countries = new Set();
+  for (const key of selectedAnchors) {
+    const payload = anchorCache.get(key);
+    if (!payload) continue;
+    const strs = payload.strs;
+    for (const wid in payload.rows_by_work) for (const e of payload.rows_by_work[wid]) {
+      const c = strs[e[6]]; if (c) countries.add(c);
+    }
+  }
+  const sorted = [...countries].sort();
+  $("countrySel").innerHTML = sorted.map(c => `<option value="${esc(c)}"${prev.has(c) ? " selected" : ""}>${esc(c)}</option>`).join("");
+}
+
+// ===== Grouped anchor picker (Colleges/Schools -> Departments -> Programs -> OAUs, big to
+// small, per this site's own Level-ordering convention) instead of one flat mixed list. =====
+function populateAnchorSelect() {
+  const buckets = { college: [], Department: [], Program: [], OAU: [] };
+  for (const a of anchorsIndex) {
+    if (a.kind === "college") buckets.college.push(a);
+    else if (buckets[a.unit_type]) buckets[a.unit_type].push(a);
+  }
+  const optGroup = (label, arr) => !arr.length ? "" : `<optgroup label="${esc(label)}">${
+    arr.map(a => `<option value="${esc(a.key)}">${esc(a.label)}</option>`).join("")}</optgroup>`;
+  $("anchorSel").innerHTML =
+    optGroup("Colleges / Schools", buckets.college) +
+    optGroup("Departments", buckets.Department) +
+    optGroup("Programs", buckets.Program) +
+    optGroup(OAU_GROUP_LABEL, buckets.OAU);
+}
+
+async function recompute() {
+  await ensureAnchorsIndex();
+  if (!selectedAnchors.length) {
+    allSeries = new Map(); allYears = [];
+    $("statusText").textContent = "Select one or more units above to see their trend.";
+    stopAnim();
+    renderChart(); renderTable();
+    return;
+  }
+  $("statusText").textContent = "Loading…";
+  try {
+    await Promise.all(selectedAnchors.map(loadAnchor));
+    refreshCountryOptions();
+    const f = currentFilters();
+    allSeries = new Map();
+    const yearsSet = new Set();
+    for (const key of selectedAnchors) {
+      const payload = anchorCache.get(key);
+      if (!payload) continue;
+      const series = computeSeries(payload, f);
+      allSeries.set(key, series);
+      for (const y of series.keys()) yearsSet.add(y);
+    }
+    allYears = [...yearsSet].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+    $("statusText").innerHTML = `Showing <b>${selectedAnchors.length}</b> unit${selectedAnchors.length === 1 ? "" : "s"} across <b>${allYears.length}</b> year${allYears.length === 1 ? "" : "s"}.`;
+    stopAnim();
+    renderChart(); renderTable();
+  } catch (err) {
+    $("statusText").textContent = "";
+    $("chart").innerHTML = "";
+    $("legend").innerHTML = `<span style="color:#8a2b2b">Failed to load data: ${esc(String(err))}</span>`;
+  }
+}
+
+function niceCeil(v) {
+  if (v <= 5) return Math.max(1, Math.ceil(v));
+  const mag = Math.pow(10, Math.floor(Math.log10(v)));
+  const norm = v / mag;
+  let n;
+  if (norm <= 1) n = 1; else if (norm <= 2) n = 2; else if (norm <= 5) n = 5; else n = 10;
+  return n * mag;
+}
+
+// ===== Chart: static axes/gridlines/legend, plus an animated-reveal group (clipPath) that the
+// Play button controls directly via the DOM (no re-render needed while playing). =====
+function renderChart() {
+  const svg = $("chart");
+  const metric = currentMetric();
+  $("metricNote").textContent = METRIC_NOTE[metric];
+  if (!selectedAnchors.length || !allYears.length) {
+    svg.innerHTML = `<text x="450" y="210" text-anchor="middle" fill="#5a6a80" font-size="14">No data to plot yet.</text>`;
+    $("legend").innerHTML = "";
+    lastPlotW = 0;
+    return;
+  }
+  const W = 900, H = 420, padL = 60, padR = 24, padT = 16, padB = 34;
+  const plotW = W - padL - padR, plotH = H - padT - padB;
+  lastPlotW = plotW;
+
+  let maxVal = 0;
+  for (const key of selectedAnchors) {
+    const series = allSeries.get(key);
+    for (const y of allYears) maxVal = Math.max(maxVal, metricValue(series && series.get(y), metric));
+  }
+  const niceMax = niceCeil(Math.max(maxVal, 1));
+
+  const xFor = i => padL + (allYears.length <= 1 ? plotW / 2 : (i / (allYears.length - 1)) * plotW);
+  const yFor = v => padT + plotH - (v / niceMax) * plotH;
+
+  const staticParts = [];
+  const GRID_N = 5;
+  for (let g = 0; g <= GRID_N; g++) {
+    const v = niceMax * g / GRID_N;
+    const yy = yFor(v);
+    staticParts.push(`<line x1="${padL}" y1="${yy.toFixed(1)}" x2="${W - padR}" y2="${yy.toFixed(1)}" stroke="#e2e5ea" stroke-width="1"/>`);
+    staticParts.push(`<text x="${padL - 8}" y="${(yy + 4).toFixed(1)}" text-anchor="end" font-size="11" fill="#5a6a80">${Math.round(v).toLocaleString()}</text>`);
+  }
+  staticParts.push(`<line x1="${padL}" y1="${(padT + plotH).toFixed(1)}" x2="${padL}" y2="${padT}" stroke="#c2cad6" stroke-width="1"/>`);
+  allYears.forEach((y, i) => {
+    staticParts.push(`<text x="${xFor(i).toFixed(1)}" y="${H - padB + 18}" text-anchor="middle" font-size="11" fill="#5a6a80">${esc(y)}</text>`);
+  });
+
+  const animParts = [];
+  selectedAnchors.forEach((key, ci) => {
+    const series = allSeries.get(key);
+    const color = COLORS[ci % COLORS.length];
+    const pts = allYears.map((y, i) => [xFor(i), yFor(metricValue(series && series.get(y), metric))]);
+    const path = pts.map((p, i) => (i === 0 ? "M" : "L") + p[0].toFixed(1) + "," + p[1].toFixed(1)).join(" ");
+    animParts.push(`<path d="${path}" fill="none" stroke="${color}" stroke-width="2.5"/>`);
+    pts.forEach((p, i) => {
+      const val = metricValue(series && series.get(allYears[i]), metric);
+      animParts.push(`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="4" fill="${color}"><title>${esc(anchorLabel(key))} — ${esc(allYears[i])}: ${val.toLocaleString()}</title></circle>`);
+    });
+  });
+
+  svg.innerHTML = staticParts.join("") +
+    `<defs><clipPath id="revealClip"><rect id="revealRect" x="${padL}" y="0" width="${plotW}" height="${H}"/></clipPath></defs>` +
+    `<g clip-path="url(#revealClip)">${animParts.join("")}</g>`;
+
+  $("legend").innerHTML = selectedAnchors.map((key, ci) =>
+    `<span class="legend-item"><span class="swatch" style="background:${COLORS[ci % COLORS.length]}"></span>${esc(anchorLabel(key))}</span>`).join("");
+}
+
+function renderTable() {
+  const metric = currentMetric();
+  $("tableHead").innerHTML = `<th>Year</th>${selectedAnchors.map(k => `<th>${esc(anchorLabel(k))}</th>`).join("")}`;
+  if (!allYears.length) {
+    $("tableBody").innerHTML = `<tr><td colspan="${Math.max(1, selectedAnchors.length + 1)}" class="muted" style="padding:16px;text-align:center">No data yet &mdash; select at least one unit above.</td></tr>`;
+    return;
+  }
+  $("tableBody").innerHTML = allYears.map(y => `<tr><td>${esc(y)}</td>${selectedAnchors.map(k => {
+    const series = allSeries.get(k);
+    return `<td>${metricValue(series && series.get(y), metric).toLocaleString()}</td>`;
+  }).join("")}</tr>`).join("");
+}
+
+function downloadCsv() {
+  if (!allYears.length) return;
+  const metric = currentMetric();
+  const hdr = ["Year", ...selectedAnchors.map(k => anchorLabel(k))];
+  const lines = [hdr.map(v => `"${("" + v).replace(/"/g, '""')}"`).join(",")];
+  allYears.forEach(y => {
+    const vals = [y, ...selectedAnchors.map(k => metricValue((allSeries.get(k) || new Map()).get(y), metric))];
+    lines.push(vals.map(v => `"${("" + v).replace(/"/g, '""')}"`).join(","));
+  });
+  const blob = new Blob([lines.join("\n")], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.download = `MIT_intl_trends_${metric}.csv`;
+  a.href = url;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ===== Play/Pause reveal animation. Purely visual - drives the revealRect's width attribute
+// directly via rAF; never touches the underlying data, table, or CSV export. =====
+const anim = { playing: false, raf: null, pausedWidth: 0, duration: 3200 };
+
+function stopAnim() {
+  if (anim.raf) cancelAnimationFrame(anim.raf);
+  anim.playing = false; anim.raf = null; anim.pausedWidth = 0;
+  $("playBtn").innerHTML = "&#9654; Play";
+}
+
+function toggleAnim() {
+  const rect = document.getElementById("revealRect");
+  if (!rect || !lastPlotW) return;
+  if (anim.playing) {
+    cancelAnimationFrame(anim.raf);
+    anim.playing = false;
+    $("playBtn").innerHTML = "&#9654; Play";
+    return;
+  }
+  if (anim.pausedWidth >= lastPlotW) anim.pausedWidth = 0; // finished before - replay from start
+  const startWidth = anim.pausedWidth;
+  const remaining = anim.duration * (1 - startWidth / lastPlotW);
+  anim.playing = true;
+  $("playBtn").innerHTML = "&#10074;&#10074; Pause";
+  const t0 = performance.now();
+  function step(ts) {
+    if (!anim.playing) return;
+    const elapsed = ts - t0;
+    const frac = remaining > 0 ? Math.min(1, elapsed / remaining) : 1;
+    const w = startWidth + (lastPlotW - startWidth) * frac;
+    rect.setAttribute("width", w.toFixed(1));
+    anim.pausedWidth = w;
+    if (frac < 1) {
+      anim.raf = requestAnimationFrame(step);
+    } else {
+      anim.playing = false;
+      anim.pausedWidth = lastPlotW;
+      $("playBtn").innerHTML = "&#8635; Replay";
+    }
+  }
+  anim.raf = requestAnimationFrame(step);
+}
+
+// ===== Wiring =====
+async function init() {
+  await ensureAnchorsIndex();
+  populateAnchorSelect();
+  renderChart(); renderTable();
+}
+
+$("anchorSearch").oninput = () => {
+  const q = $("anchorSearch").value.trim().toLowerCase();
+  $("anchorSel").querySelectorAll("optgroup").forEach(og => {
+    let anyVisible = false;
+    [...og.children].forEach(o => {
+      const hide = !!q && !o.textContent.toLowerCase().includes(q);
+      o.hidden = hide;
+      if (!hide) anyVisible = true;
+    });
+    og.hidden = !anyVisible;
+  });
+};
+$("anchorSel").onchange = () => { selectedAnchors = selectedValues($("anchorSel")); recompute(); };
+$("metricSeg").querySelectorAll("button").forEach(b => b.onclick = () => {
+  $("metricSeg").querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
+  stopAnim();
+  renderChart(); renderTable();
+});
+$("partnerType").onchange = recompute;
+$("countrySel").onchange = recompute;
+$("countryAll").onclick = () => { [...$("countrySel").options].forEach(o => o.selected = false); recompute(); };
+$("countryAllButUS").onclick = () => { [...$("countrySel").options].forEach(o => o.selected = (o.value !== "UNITED STATES")); recompute(); };
+document.querySelectorAll("#typeCols input[data-t]").forEach(cb => cb.onchange = recompute);
+$("clearFilters").onclick = () => {
+  $("partnerType").value = "all";
+  $("anchorSel").querySelectorAll("option").forEach(o => o.selected = false);
+  [...$("countrySel").options].forEach(o => o.selected = false);
+  document.querySelectorAll("#typeCols input[data-t]").forEach(cb => cb.checked = true);
+  $("anchorSearch").value = "";
+  $("anchorSel").querySelectorAll("option,optgroup").forEach(o => o.hidden = false);
+  selectedAnchors = [];
+  recompute();
+};
+$("downloadCsv").onclick = downloadCsv;
+$("playBtn").onclick = toggleAnim;
+
+init();
+// build: 2026-07-12 international trends-by-year page (v2 - viewport-fit layout, grouped unit
+// picker, animated play/pause reveal)
+</script>
+</body>
+</html>

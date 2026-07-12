@@ -20,6 +20,7 @@ body{font:15px/1.7 'Open Sans',-apple-system,'Segoe UI',Roboto,Helvetica,Arial,s
   padding:3px 2px;border-bottom:2px solid transparent}
 .aa-nav a:hover{color:#fff}
 .aa-nav a.cur{color:#fff;border-bottom-color:#0066b4}
+.aa-nav .divider{display:block;width:2px;align-self:stretch;background:#fff;margin:0 6px}
 header.doc{background:var(--navy);color:#fff;padding:0 28px;display:flex;align-items:center;gap:16px;height:54px;
   position:sticky;top:0;z-index:100}
 header.doc .site-title{font-family:'Crimson Text',serif;font-size:17px;font-weight:700;font-variant-numeric:lining-nums}
@@ -82,8 +83,10 @@ footer{padding:12px 20px;color:var(--muted);font-size:11px;border-top:1px solid 
   <a href="chord_viz.html">Chord</a>
   <a href="matrix_viz.html">Matrix</a>
   <a href="insights.html">Insights</a>
-  <a href="intl_details_table.html">Int'l Collabs</a>
-  <a href="intl_map.html">Int'l Map</a>
+  <span class="divider"></span>
+  <a href="intl_details_table.html">International Collabs</a>
+  <a href="intl_map.html">International Map</a>
+  <a href="intl_trends.html">International Trends</a>
 </div>
 <header class="doc">
   <span class="site-title">MIT Collaboration Report — AAD2024</span>
@@ -280,8 +283,6 @@ footer{padding:12px 20px;color:var(--muted);font-size:11px;border-top:1px solid 
 
 </main>
 </div>
-<footer>Source: <code>details_base.csv</code> &middot; AAD2024-2904 &middot; MIT</footer>
-
 <script>
 (function () {
   const links = document.querySelectorAll('.toc-list a');

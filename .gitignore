@@ -13,21 +13,28 @@ data/details/C*.json
 # stray build temp files that sometimes land next to the real JSON
 data/details/.*
 data/details/*.tmp
-# ---- 2026-07-11: exclude build-only / oversized / superseded files from the v2 push ---- 
-data/MitInternationalCollabsLong.csv 
-data/intl/raw/ 
-data/intl/raw2/ 
-data/intl_full.parquet 
-data/intl_map_full.parquet 
-data/intl_map_data.json 
-data/basemap_countries.json 
-data/basemap_states.json 
-data/excluded_institutions_no_coordinate.csv 
-data/chunks/ 
-data/counts_simple_v3.json 
-__pycache__/ 
-counts_simple.html 
-details_table.html 
-network_viz_backup_2026-07-08.html 
-network_viz_backup_2026-07-09.html 
-network_viz_backup_2026-07-09_pre-features.html 
+# ---- 2026-07-11: exclude build-only / oversized / superseded files from the v2 push ----
+data/MitInternationalCollabsLong.csv
+data/intl/raw/
+data/intl/raw2/
+data/intl_full.parquet
+data/intl_map_full.parquet
+data/intl_map_data.json
+data/basemap_countries.json
+data/basemap_states.json
+data/excluded_institutions_no_coordinate.csv
+data/chunks/
+data/counts_simple_v3.json
+__pycache__/
+counts_simple.html
+details_table.html
+network_viz_backup_2026-07-08.html
+network_viz_backup_2026-07-09.html
+network_viz_backup_2026-07-09_pre-features.html
+*.fresh.html
+*.fresh.js
+.gitignore.fresh
+_fresh_*
+_spliced_*.html
+_tail_*.html
+_details_check.js

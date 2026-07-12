@@ -74,6 +74,10 @@ input[type=text],input[type=number]{background:#fff;color:var(--text);border-col
   letter-spacing:0;color:#fff;cursor:pointer}
 .sidegrp{display:flex;flex-direction:column;gap:4px;padding:6px 10px;border:1px solid rgba(255,255,255,.2);border-radius:6px;background:transparent}
 .sidegrp .ttl{font-size:10px;font-weight:700;color:rgba(255,255,255,.75);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px}
+.hdr-row{display:flex;align-items:flex-start;gap:18px}
+.hdr-row .controls{flex:1;min-width:0}
+.hdr-actions{display:flex;flex-direction:column;gap:8px;flex-shrink:0;width:170px}
+.hdr-actions .btn{width:100%;white-space:nowrap}
 .fieldgrid{display:grid;grid-template-columns:auto 50px 58px;row-gap:5px;column-gap:8px;align-items:center;
   background:transparent;font-size:12px}
 .fieldgrid-row{display:contents}
@@ -122,6 +126,7 @@ footer{padding:10px 20px;color:#5a6a80;font-size:11px}
   padding:3px 2px;border-bottom:2px solid transparent}
 .aa-nav a:hover{color:#fff}
 .aa-nav a.cur{color:#fff;border-bottom-color:#0066b4}
+.aa-nav .divider{display:block;width:2px;align-self:stretch;background:#fff;margin:0 6px}
 </style>
 </head>
 <body>
@@ -133,11 +138,14 @@ footer{padding:10px 20px;color:#5a6a80;font-size:11px}
   <a href="chord_viz.html">Chord</a>
   <a href="matrix_viz.html">Matrix</a>
   <a href="insights.html">Insights</a>
-  <a href="intl_details_table.html">Int'l Collabs</a>
-  <a href="intl_map.html">Int'l Map</a>
+  <span class="divider"></span>
+  <a href="intl_details_table.html">International Collabs</a>
+  <a href="intl_map.html">International Map</a>
+  <a href="intl_trends.html">International Trends</a>
 </div>
 <header>
   <h1>MIT Collaboration Details AAD2024</h1>
+  <div class="hdr-row">
   <div class="controls">
     <div class="ctl"><label>Unit Type <span class="hint" title="Medical units are always included in the data, regardless of which Unit Type is selected. Pick Medical to see only medical units on their own.">(Medical always included)</span></label>
       <div class="seg" id="uk">
@@ -234,9 +242,11 @@ footer{padding:10px 20px;color:#5a6a80;font-size:11px}
       </div>
     </div>
 
-    <div class="ctl"><label>&nbsp;</label><button class="btn" id="clearFilters">Clear Filters</button></div>
-
-    <div class="ctl"><label>&nbsp;</label><button class="btn primary" id="downloadCsv">Download Data (CSV)</button></div>
+  </div>
+  <div class="hdr-actions">
+    <button type="button" class="btn" id="clearFilters">Clear Filters</button>
+    <button type="button" class="btn primary" id="downloadCsv">Download Data (CSV)</button>
+  </div>
   </div>
 </header>
 <div class="status" id="status">
