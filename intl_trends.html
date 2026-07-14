@@ -248,6 +248,7 @@ function currentFilters() {
     types: new Set([...document.querySelectorAll("#typeCols input[data-t]")].filter(x => x.checked).map(x => x.dataset.t)),
   };
 }
+
 function currentMetric() { return $("metricSeg").querySelector("button.on").dataset.m; }
 
 // Per-year buckets for ONE anchor's payload under current Country/Partner Type/Work Type filters.
@@ -545,4 +546,8 @@ $("downloadCsv").onclick = downloadCsv;
 $("playBtn").onclick = toggleAnim;
 
 init();
-// build: 2026-07-12 international trends-by-year page (v
+// build: 2026-07-12 international trends-by-year page (v2 - viewport-fit layout, grouped unit
+// picker, animated play/pause reveal)
+</script>
+</body>
+</html>
