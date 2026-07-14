@@ -1378,6 +1378,12 @@
     $("summaryNodes").textContent = number(nodeCount);
     $("summaryEdges").textContent = number(edgeCount);
 
+    $("summaryAnchorItem").title = activeGraph.mode === "compare"
+      ? "Scholars anchoring each side of the comparison."
+      : "Scholars from the selected anchor unit shown in this graph, capped by the “Top anchor scholars” filter.";
+    $("summaryNodesItem").title = "Everyone drawn in this graph: anchor scholars plus the collaborators who passed the current Scope and Partner limit filters.";
+    $("summaryEdgesItem").title = "Collaboration lines between visible people — one line per collaborator pair, not per publication. Color shows relationship: green = within the unit, gold = across MIT units, purple = external institution.";
+
     const droppedAnchors = activeGraph.meta.droppedAnchors || 0;
     const droppedPartners = activeGraph.meta.droppedPartners || 0;
     const dropped = droppedAnchors + droppedPartners;
