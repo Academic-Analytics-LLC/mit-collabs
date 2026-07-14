@@ -728,7 +728,7 @@
     return {
       nodes,
       links,
-      static: false,
+      static: true,
       mode,
       meta: { anchorCount: nodes.length },
     };
@@ -1299,7 +1299,7 @@
     });
 
     const dense = activeGraph.nodes.length > 70 && zoom <= 1.3
-      && !["focus", "path", "compare", "bridges"].includes(activeGraph.mode);
+      && !["focus", "path", "compare", "bridges", "unit"].includes(activeGraph.mode);
     const maxDegree = activeGraph.nodes.reduce((max, node) => Math.max(max, node.deg || 0), 1);
     activeGraph.nodes.forEach((node, nodeIndex) => {
       if (dense && !node.isAnchor && nodeIndex !== hoverGraphIndex && nodeIndex !== selectedGraphIndex
