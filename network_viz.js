@@ -1663,7 +1663,23 @@
     return (memberships.get(pid) || []).some((key) => targetKeys.has(key));
   }
 
-  function renderPartnerTies(anchorKey, node) {
+  function tieGroupsForNode(node) {
+    if (node.kind === "unit-partner") {
+      return [{ heading: null, anchorKey: state.anchorKey }];
+    }
+    if (node.kind === "compare-unique") {
+      return [{ heading: null, anchorKey: node.side === "a" ? state.compareA : state.compareB }];
+    }
+    if (node.kind === "compare-shared") {
+      return [
+        { heading: compactUnit(anchorByKey.get(state.compareA)?.label || "Anchor A"), anchorKey: state.compareA },
+        { heading: compactUnit(anchorByKey.get(state.compareB)?.label || "Anchor B"), anchorKey: state.compareB },
+      ];
+    }
+    return [];
+  }
+
+  function collectTies(anchorKey, node) {
     const cached = payloadCache.get(anchorKey);
     if (!cached || typeof cached.then === "function") {
       loadPayload(anchorKey).then(() => {
@@ -1672,7 +1688,7 @@
         console.error(error);
         showToast("Unable to load tie detail");
       });
-      return '<p class="empty-copy">Loading who’s behind this number…</p>';
+      return { loading: true, ties: [] };
     }
     const anchorSet = new Set(index.anchor_pids[anchorKey] || []);
     const ties = filteredEdges(cached, anchorSet)
@@ -1680,22 +1696,77 @@
       .map((edge) => {
         const anchorPid = anchorSet.has(edge.a) ? edge.a : edge.b;
         const otherPid = anchorPid === edge.a ? edge.b : edge.a;
-        return { anchorPid, otherPid, works: edge.works };
+        return {
+          anchorPid,
+          otherPid,
+          works: edge.works,
+          payload: cached,
+          pairKey: [anchorPid, otherPid].sort().join(":"),
+        };
       })
       .filter((tie) => partnerNodeMatchesPid(tie.otherPid, node))
       .sort((a, b) => b.works - a.works);
+    return { loading: false, ties };
+  }
 
+  function renderTieTable(ties) {
     if (!ties.length) {
       return '<p class="empty-copy">Detailed tie breakdown isn’t available for this partner at the current filters.</p>';
     }
-    return `<ul class="people-list">${ties.map((tie) => {
-      const anchorPerson = index.people[tie.anchorPid] || ["Unknown", 3, ""];
-      const otherPerson = index.people[tie.otherPid] || ["Unknown", 3, ""];
-      return `<li><button class="person-row" type="button" data-focus-pid="${esc(tie.anchorPid)}">
-        <span><strong>${esc(anchorPerson[0])}</strong><span>↔ ${esc(otherPerson[0])}${otherPerson[2] ? ` · ${esc(otherPerson[2])}` : ""}</span></span>
-        <strong>${number(tie.works)}</strong>
-      </button></li>`;
-    }).join("")}</ul>`;
+    return `<div class="tie-table">
+      <span class="tie-head">Scholar</span>
+      <span class="tie-head">Collaborator</span>
+      <span class="tie-head">Unit / institution</span>
+      <span class="tie-head tie-works">Works</span>
+      ${ties.map((tie) => {
+        const anchorPerson = index.people[tie.anchorPid] || ["Unknown", 3, ""];
+        const otherPerson = index.people[tie.otherPid] || ["Unknown", 3, ""];
+        return `<div class="tie-row" data-focus-pid="${esc(tie.anchorPid)}">
+          <span>${esc(anchorPerson[0])}</span>
+          <span>${esc(otherPerson[0])}</span>
+          <span>${esc(otherPerson[2] || "")}</span>
+          <span class="tie-works">${number(tie.works)}</span>
+        </div>`;
+      }).join("")}
+    </div>`;
+  }
+
+  function renderTieWorks(node, ties) {
+    if (!worksMeta) {
+      ensureWorksMeta().then(() => {
+        if (selectedGraphIndex >= 0 && activeGraph.nodes[selectedGraphIndex] === node && state.drawerTab === "works") renderDrawer();
+      }).catch((error) => {
+        console.error(error);
+        showToast("Unable to load work titles");
+      });
+      return '<p class="empty-copy">Loading collaborative works...</p>';
+    }
+    const rows = [];
+    const seen = new Set();
+    ties.forEach((tie) => {
+      const workIds = tie.payload?.edge_wids?.[tie.pairKey] || [];
+      workIds.forEach((workId) => {
+        if (seen.has(workId) || !worksMeta[workId] || rows.length >= 150) return;
+        seen.add(workId);
+        const [title, year, typeIndex] = worksMeta[workId];
+        const anchorPerson = index.people[tie.anchorPid] || ["Unknown", 3, ""];
+        const otherPerson = index.people[tie.otherPid] || ["Unknown", 3, ""];
+        rows.push({ title, year, type: TYPE_LABELS[typeIndex] || "Work", pair: `${anchorPerson[0]} & ${otherPerson[0]}` });
+      });
+    });
+    if (!rows.length) return '<p class="empty-copy">No work titles are available for this selection.</p>';
+    return `<div class="work-list">${rows.map((row) => (
+      `<div class="work-row"><span><strong>${esc(row.title)}</strong><br><span class="muted">${esc(row.type)} · ${esc(row.pair)}${row.year ? ` · ${esc(row.year)}` : ""}</span></span></div>`
+    )).join("")}</div>`;
+  }
+
+  function renderNodeTieSections(node, renderContent) {
+    return tieGroupsForNode(node).map((group) => {
+      const { loading, ties } = collectTies(group.anchorKey, node);
+      const body = loading ? '<p class="empty-copy">Loading who’s behind this number…</p>' : renderContent(node, ties);
+      const heading = group.heading ? `Who's behind this — ${esc(group.heading)}` : "Who's behind this";
+      return `<section class="drawer-section"><h3>${heading}</h3>${body}</section>`;
+    }).join("");
   }
 
   function renderAggregateDrawer(node) {
@@ -1713,23 +1784,19 @@
       <div class="metric"><strong>${number(partners.length)}</strong><span>Partners</span></div>
       <div class="metric"><strong>${number(partners.reduce((sum, item) => sum + item.works, 0))}</strong><span>Cross-links</span></div>
     </div></section>`;
-    const tieNote = '<p class="filter-note">Click a name to open their full collaboration profile, including work titles, in Focus view.</p>';
-    if (node.kind === "unit-partner") {
-      return `${metricsHtml}<section class="drawer-section"><h3>Who's behind this</h3>${renderPartnerTies(state.anchorKey, node)}${tieNote}</section>`;
-    }
-    if (node.kind === "compare-unique") {
-      const anchorKey = node.side === "a" ? state.compareA : state.compareB;
-      return `${metricsHtml}<section class="drawer-section"><h3>Who's behind this</h3>${renderPartnerTies(anchorKey, node)}${tieNote}</section>`;
-    }
-    if (node.kind === "compare-shared") {
-      const labelA = esc(compactUnit(anchorByKey.get(state.compareA)?.label || "Anchor A"));
-      const labelB = esc(compactUnit(anchorByKey.get(state.compareB)?.label || "Anchor B"));
-      return `${metricsHtml}
-        <section class="drawer-section"><h3>Who's behind this — ${labelA}</h3>${renderPartnerTies(state.compareA, node)}</section>
-        <section class="drawer-section"><h3>Who's behind this — ${labelB}</h3>${renderPartnerTies(state.compareB, node)}${tieNote}</section>`;
+
+    if (["unit-partner", "compare-unique", "compare-shared"].includes(node.kind)) {
+      if (state.drawerTab === "works") {
+        return `${metricsHtml}${renderNodeTieSections(node, (n, ties) => renderTieWorks(n, ties))}`;
+      }
+      if (state.drawerTab === "people") {
+        return `${metricsHtml}${renderNodeTieSections(node, (n, ties) => renderTieTable(ties))}
+          <p class="filter-note">Click a scholar to open their full collaboration profile in Focus view. See the Works tab above for titles.</p>`;
+      }
+      return `${metricsHtml}<p class="filter-note">See the People tab above for who makes up this tie count, and Works for the underlying titles.</p>`;
     }
     if (node.kind === "bridge-unit") {
-      return `${metricsHtml}<section class="drawer-section"><h3>Bridge scholars connecting here</h3>${renderBridgeUnitTies(node)}${tieNote}</section>`;
+      return `${metricsHtml}<section class="drawer-section"><h3>Bridge scholars connecting here</h3>${renderBridgeUnitTies(node)}</section>`;
     }
     return `${metricsHtml}<section class="drawer-section"><h3>Top partners</h3><div class="rank-list">${partners.slice(0, 40).map((item) => `<div class="rank-row"><span>${esc(item.node.full || item.node.label)}</span><strong>${number(item.works)}</strong></div>`).join("")}</div></section>`;
   }
@@ -1824,7 +1891,9 @@
       refresh();
       return;
     }
-    selectedGraphIndex = selectedGraphIndex === nodeIndex ? -1 : nodeIndex;
+    const wasSelected = selectedGraphIndex === nodeIndex;
+    selectedGraphIndex = wasSelected ? -1 : nodeIndex;
+    if (!wasSelected) state.drawerTab = "overview";
     renderDrawer();
     draw();
   }

@@ -906,6 +906,48 @@ a:focus-visible {
   font-size: 10px;
 }
 
+.tie-table {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 0.9fr) auto;
+  gap: 1px 10px;
+  font-size: 11px;
+}
+
+.tie-head {
+  padding: 3px 6px 6px;
+  border-bottom: 1px solid var(--line);
+  color: var(--mut);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.tie-row {
+  display: contents;
+  cursor: pointer;
+}
+
+.tie-row > span {
+  min-width: 0;
+  padding: 6px;
+  overflow: hidden;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tie-row:hover > span {
+  background: var(--accent-soft);
+}
+
+.tie-works {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
 .rel-pill {
   display: inline-block;
   padding: 2px 6px;
