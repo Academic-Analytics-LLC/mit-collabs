@@ -545,6 +545,8 @@
         anchorCount: visibleAnchors.length,
         droppedAnchors: Math.max(0, anchorSorted.length - visibleAnchors.length),
         droppedPartners: Math.max(0, partnerSorted.length - visiblePartners.length),
+        totalAnchors: anchorSorted.length,
+        totalPartners: partnerSorted.length,
         filteredEdges: edges,
         anchorSet,
       },
@@ -627,6 +629,7 @@
         pid,
         ringRadii: radii,
         droppedPartners: Math.max(0, related.length - kept.length),
+        totalPartners: related.length,
         filteredEdges: edges,
         anchorSet,
         anchorCount: anchorSet.size,
@@ -694,6 +697,7 @@
       meta: {
         anchorCount: 1,
         droppedPartners: Math.max(0, entries.length - kept.length),
+        totalPartners: entries.length,
       },
     };
   }
@@ -1409,6 +1413,10 @@
       if (droppedAnchors) parts.push(`${number(droppedAnchors)} scholars hidden`);
       if (droppedPartners) parts.push(`${number(droppedPartners)} partners hidden`);
       $("summaryBadge").textContent = parts.join(" \u00b7 ");
+      if (activeGraph.meta.totalAnchors != null || activeGraph.meta.totalPartners != null) {
+        $("showHiddenBtn").textContent = `Show all ${number(dropped)}`;
+        $("showHiddenBtn").hidden = false;
+      }
     }
 
     $("graphA11ySummary").textContent = `${graphStatus()}. ${nodeCount} visible nodes and ${edgeCount} ties. An equivalent selectable people list is available in the details panel.`;
@@ -2098,7 +2106,13 @@
       refresh();
     });
     $("showHiddenBtn").addEventListener("click", () => {
-      state.compareShowAll = true;
+      if (activeGraph.mode === "compare") {
+        state.compareShowAll = true;
+      } else {
+        const meta = activeGraph.meta;
+        if (meta.totalAnchors != null) state.topAnchors = clampInteger(meta.totalAnchors, 1, 1000, state.topAnchors);
+        if (meta.totalPartners != null) state.partnerLimit = clampInteger(meta.totalPartners, 1, 2000, state.partnerLimit);
+      }
       syncControls();
       refresh();
     });
