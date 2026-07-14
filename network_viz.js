@@ -816,6 +816,7 @@
           label: compactUnit(entry[0]),
           full: entry[0],
           kind: "compare-unique",
+          side,
           rel: Number(entry[1]),
           deg: Number(entry[2] || 0),
           works: Number(entry[2] || 0),
@@ -1650,6 +1651,53 @@
     <section class="drawer-section"><h3>Distinct-unit reach</h3><ol class="rank-list">${ranking.map((item, itemIndex) => `<li><button class="rank-button" type="button" data-focus-pid="${esc(item.pid)}"><span><strong>${itemIndex + 1}. ${esc(index.people[item.pid]?.[0] || item.pid)}</strong><span>${number(item.collaborators.size)} collaborators · ${number(item.works)} work-links</span></span><strong>${number(item.units.size)}</strong></button></li>`).join("")}</ol></section>`;
   }
 
+  function partnerNodeMatchesPid(pid, node) {
+    if (node.rel === 2) {
+      const person = index.people[pid];
+      return !!person && String(person[2] || "").trim() === String(node.full || "").trim();
+    }
+    const targetKeys = new Set(index.anchors
+      .filter((anchor) => anchor.kind === "unit" && anchor.label === node.full)
+      .map((anchor) => anchor.key));
+    if (!targetKeys.size) return false;
+    return (memberships.get(pid) || []).some((key) => targetKeys.has(key));
+  }
+
+  function renderPartnerTies(anchorKey, node) {
+    const cached = payloadCache.get(anchorKey);
+    if (!cached || typeof cached.then === "function") {
+      loadPayload(anchorKey).then(() => {
+        if (selectedGraphIndex >= 0 && activeGraph.nodes[selectedGraphIndex] === node) renderDrawer();
+      }).catch((error) => {
+        console.error(error);
+        showToast("Unable to load tie detail");
+      });
+      return '<p class="empty-copy">Loading who’s behind this number…</p>';
+    }
+    const anchorSet = new Set(index.anchor_pids[anchorKey] || []);
+    const ties = filteredEdges(cached, anchorSet)
+      .filter((edge) => edge.rel === node.rel)
+      .map((edge) => {
+        const anchorPid = anchorSet.has(edge.a) ? edge.a : edge.b;
+        const otherPid = anchorPid === edge.a ? edge.b : edge.a;
+        return { anchorPid, otherPid, works: edge.works };
+      })
+      .filter((tie) => partnerNodeMatchesPid(tie.otherPid, node))
+      .sort((a, b) => b.works - a.works);
+
+    if (!ties.length) {
+      return '<p class="empty-copy">Detailed tie breakdown isn’t available for this partner at the current filters.</p>';
+    }
+    return `<ul class="people-list">${ties.map((tie) => {
+      const anchorPerson = index.people[tie.anchorPid] || ["Unknown", 3, ""];
+      const otherPerson = index.people[tie.otherPid] || ["Unknown", 3, ""];
+      return `<li><button class="person-row" type="button" data-focus-pid="${esc(tie.anchorPid)}">
+        <span><strong>${esc(anchorPerson[0])}</strong><span>↔ ${esc(otherPerson[0])}${otherPerson[2] ? ` · ${esc(otherPerson[2])}` : ""}</span></span>
+        <strong>${number(tie.works)}</strong>
+      </button></li>`;
+    }).join("")}</ul>`;
+  }
+
   function renderAggregateDrawer(node) {
     setDrawerHeading(node.full || node.label || "Selected node", `${number(node.works || node.deg)} works`, true);
     const nodeIndex = activeGraph.nodes.indexOf(node);
@@ -1660,11 +1708,46 @@
         return { node: activeGraph.nodes[otherIndex], works: link.works };
       })
       .sort((a, b) => b.works - a.works);
-    return `<section class="drawer-section"><div class="metric-grid">
+    const metricsHtml = `<section class="drawer-section"><div class="metric-grid">
       <div class="metric"><strong>${number(node.works || node.deg)}</strong><span>Works</span></div>
       <div class="metric"><strong>${number(partners.length)}</strong><span>Partners</span></div>
       <div class="metric"><strong>${number(partners.reduce((sum, item) => sum + item.works, 0))}</strong><span>Cross-links</span></div>
-    </div></section><section class="drawer-section"><h3>Top partners</h3><div class="rank-list">${partners.slice(0, 40).map((item) => `<div class="rank-row"><span>${esc(item.node.full || item.node.label)}</span><strong>${number(item.works)}</strong></div>`).join("")}</div></section>`;
+    </div></section>`;
+    const tieNote = '<p class="filter-note">Click a name to open their full collaboration profile, including work titles, in Focus view.</p>';
+    if (node.kind === "unit-partner") {
+      return `${metricsHtml}<section class="drawer-section"><h3>Who's behind this</h3>${renderPartnerTies(state.anchorKey, node)}${tieNote}</section>`;
+    }
+    if (node.kind === "compare-unique") {
+      const anchorKey = node.side === "a" ? state.compareA : state.compareB;
+      return `${metricsHtml}<section class="drawer-section"><h3>Who's behind this</h3>${renderPartnerTies(anchorKey, node)}${tieNote}</section>`;
+    }
+    if (node.kind === "compare-shared") {
+      const labelA = esc(compactUnit(anchorByKey.get(state.compareA)?.label || "Anchor A"));
+      const labelB = esc(compactUnit(anchorByKey.get(state.compareB)?.label || "Anchor B"));
+      return `${metricsHtml}
+        <section class="drawer-section"><h3>Who's behind this — ${labelA}</h3>${renderPartnerTies(state.compareA, node)}</section>
+        <section class="drawer-section"><h3>Who's behind this — ${labelB}</h3>${renderPartnerTies(state.compareB, node)}${tieNote}</section>`;
+    }
+    if (node.kind === "bridge-unit") {
+      return `${metricsHtml}<section class="drawer-section"><h3>Bridge scholars connecting here</h3>${renderBridgeUnitTies(node)}${tieNote}</section>`;
+    }
+    return `${metricsHtml}<section class="drawer-section"><h3>Top partners</h3><div class="rank-list">${partners.slice(0, 40).map((item) => `<div class="rank-row"><span>${esc(item.node.full || item.node.label)}</span><strong>${number(item.works)}</strong></div>`).join("")}</div></section>`;
+  }
+
+  function renderBridgeUnitTies(node) {
+    const ranking = activeGraph.meta.ranking || [];
+    const rows = ranking
+      .filter((score) => score.units.has(node.id))
+      .map((score) => ({ pid: score.pid, works: score.unitWorks.get(node.id) || 0 }))
+      .sort((a, b) => b.works - a.works);
+    if (!rows.length) return '<p class="empty-copy">No ranked bridge scholars connect to this unit.</p>';
+    return `<ul class="people-list">${rows.map((row) => {
+      const person = index.people[row.pid] || ["Unknown", 3, ""];
+      return `<li><button class="person-row" type="button" data-focus-pid="${esc(row.pid)}">
+        <span><strong>${esc(person[0])}</strong></span>
+        <strong>${number(row.works)}</strong>
+      </button></li>`;
+    }).join("")}</ul>`;
   }
 
   function renderDrawer() {
@@ -1674,12 +1757,22 @@
       button.setAttribute("aria-selected", String(active));
     });
     let html;
-    if (state.view === "compare") html = renderCompareDrawer();
-    else if (state.view === "path") html = renderPathDrawer();
-    else if (state.view === "bridges" && !state.selectedPid) html = renderBridgeDrawer();
-    else if (state.selectedPid && currentFilteredEdges.length) html = renderPersonDrawer(state.selectedPid);
-    else if (selectedGraphIndex >= 0 && activeGraph.nodes[selectedGraphIndex]) html = renderAggregateDrawer(activeGraph.nodes[selectedGraphIndex]);
-    else {
+    const selectedNode = selectedGraphIndex >= 0 ? activeGraph.nodes[selectedGraphIndex] : null;
+    if (state.selectedPid && currentFilteredEdges.length) {
+      html = renderPersonDrawer(state.selectedPid);
+    } else if (selectedNode && (state.view === "compare" || state.view === "bridges")) {
+      // A specific node was clicked in a mode that otherwise shows a fixed summary —
+      // prefer the node's own detail over the generic view-level drawer.
+      html = renderAggregateDrawer(selectedNode);
+    } else if (state.view === "compare") {
+      html = renderCompareDrawer();
+    } else if (state.view === "path") {
+      html = renderPathDrawer();
+    } else if (state.view === "bridges") {
+      html = renderBridgeDrawer();
+    } else if (selectedNode) {
+      html = renderAggregateDrawer(selectedNode);
+    } else {
       setDrawerHeading("Network summary", "AAD2024-2904");
       html = renderNetworkOverview();
     }
