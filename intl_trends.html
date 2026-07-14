@@ -88,7 +88,8 @@ input[type=text]{background:#fff;color:var(--text);border-color:var(--line);min-
   flex-shrink:0;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 .status b{color:var(--ink)}
 .playCtl{display:flex;align-items:center;gap:8px;flex-shrink:0}
-.playCtl .btn{padding:4px 12px;font-size:12px}
+.playCtl .btn{padding:4px 12px;font-size:12px;background:var(--navy);color:#fff;border:1px solid var(--navy)}
+.playCtl .btn:hover{background:#1c3552}
 .chartWrap{flex:1;min-height:0;display:flex;flex-direction:column;padding:8px 20px 2px;background:var(--card)}
 .chartSvgHolder{flex:1;min-height:0;position:relative}
 #chart{width:100%;height:100%;display:block}
@@ -544,8 +545,4 @@ $("downloadCsv").onclick = downloadCsv;
 $("playBtn").onclick = toggleAnim;
 
 init();
-// build: 2026-07-12 international trends-by-year page (v2 - viewport-fit layout, grouped unit
-// picker, animated play/pause reveal)
-</script>
-</body>
-</html>
+// build: 2026-07-12 international trends-by-year page (v
