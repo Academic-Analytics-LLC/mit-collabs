@@ -28,9 +28,9 @@ data/counts_simple_v3.json
 __pycache__/
 counts_simple.html
 details_table.html
-network_viz_backup_2026-07-08.html
-network_viz_backup_2026-07-09.html
-network_viz_backup_2026-07-09_pre-features.html
+network_viz_backup_*.html
+# 2026-07-15: full MIT-only faculty roster + admin-preview evaluation page additions
+data/MITLongCollabs.csv
 *.fresh.html
 *.fresh.js
 .gitignore.fresh

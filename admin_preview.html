@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MIT Collaboration Network — Administrator Preview</title>
+<!--
+  ADMINISTRATOR PREVIEW — evaluation prototype, deliberately NOT in the shared .aa-nav.
+  Reframes the existing validated data through a university-administrator lens:
+    Executive Summary · Questions · Scorecard (+ rank lens) · White Space ·
+    Department One-Pagers (print-friendly) · Retention Risk · International.
+  Data: data/admin/admin_data.json, built by sas/build_admin_preview.py from
+    - data/counts_simple_v3.json  (SAS-validated, 16,747-work AAD2024-2904 universe, Department mode)
+    - matrix_viz.html embedded cells (SAS-exact unit×unit)
+    - data/network/index.json     (anchor keys only, for deep links into network_viz.html)
+    - data/intl_full.parquet      (international dataset, 2018–2025 — separate product, own conventions)
+  Serve over http (serve.bat); fetch() fails on file://.
+  DESIGN TOKENS — copied from intl_trends.html, keep in sync:
+    --navy:#254467  --ink:#052448  --bg:#f7f7f7  --card:#fff
+    --text:#212529  --accent:#0066b4  --line:#e2e5ea
+    Fonts: Open Sans (body), Crimson Text (headings)
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Text:wght@600;700&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#254467;--ink:#052448;--bg:#f7f7f7;--card:#fff;--text:#212529;--accent:#0066b4;--line:#e2e5ea;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:14px/1.45 'Open Sans',-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:var(--text);background:var(--bg)}
+.aa-nav{background:#052448;padding:7px 20px;display:flex;gap:18px;flex-wrap:wrap;
+  font:12px 'Open Sans',-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif}
+.aa-nav a{color:rgba(255,255,255,.7);text-decoration:none;font-weight:600;letter-spacing:.02em;
+  padding:3px 2px;border-bottom:2px solid transparent}
+.aa-nav a:hover{color:#fff}
+.aa-nav .divider{display:block;width:2px;align-self:stretch;background:#fff;margin:0 6px}
+.preview-strip{background:#b7791f;color:#fff;text-align:center;font-size:12px;font-weight:600;
+  letter-spacing:.03em;padding:5px 16px}
+header{background:var(--navy);color:#fff;padding:16px 24px}
+h1{font-family:'Crimson Text',serif;font-size:24px;font-weight:700;letter-spacing:.01em}
+header .sub{font-size:12.5px;color:rgba(255,255,255,.82);margin-top:3px;max-width:960px}
+.tabs{background:var(--card);border-bottom:1px solid var(--line);padding:0 24px;display:flex;gap:2px;flex-wrap:wrap;position:sticky;top:0;z-index:10}
+.tabs button{border:0;background:none;font:600 13px 'Open Sans',sans-serif;color:#5a6a80;padding:11px 13px;cursor:pointer;
+  border-bottom:3px solid transparent}
+.tabs button:hover{color:var(--navy)}
+.tabs button.cur{color:var(--navy);border-bottom-color:var(--accent)}
+main{max-width:1180px;margin:0 auto;padding:20px 24px 60px}
+section.tab{display:none}
+section.tab.cur{display:block}
+h2{font-family:'Crimson Text',serif;font-size:20px;color:var(--ink);margin:6px 0 10px}
+h3{font-family:'Crimson Text',serif;font-size:16.5px;color:var(--ink);margin:18px 0 8px}
+p.lede{max-width:880px;color:#33404f;margin-bottom:14px}
+.note{font-size:12px;color:#5a6a80;max-width:880px;margin:8px 0 14px}
+.note b{color:#33404f}
+.cards{display:flex;gap:12px;flex-wrap:wrap;margin:12px 0 18px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px 16px;min-width:150px;flex:1}
+.kpi .v{font-family:'Crimson Text',serif;font-size:26px;font-weight:700;color:var(--navy)}
+.kpi .l{font-size:11.5px;color:#5a6a80;margin-top:2px}
+.headline{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent);
+  border-radius:6px;padding:12px 16px;margin:8px 0;max-width:920px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:860px){.grid2{grid-template-columns:1fr}}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px 16px;margin-bottom:14px}
+table{border-collapse:collapse;width:100%;background:var(--card)}
+th,td{padding:6px 9px;border-bottom:1px solid var(--line);text-align:left;font-size:12.5px;vertical-align:top}
+th{background:#eef1f5;color:var(--ink);font-size:11.5px;letter-spacing:.02em;white-space:nowrap;cursor:default}
+th.sortable{cursor:pointer}
+th.sortable:hover{background:#e2e8f0}
+th .arrow{font-size:9px;color:var(--accent)}
+td.num,th.num{text-align:right}
+tr:hover td{background:#f4f7fa}
+.bar{display:inline-block;height:9px;background:var(--accent);border-radius:2px;vertical-align:middle;margin-right:6px;opacity:.75}
+.bar.gold{background:#b7791f}
+.chip{display:inline-block;background:#eef1f5;border:1px solid var(--line);border-radius:10px;font-size:11px;
+  padding:1px 8px;margin:1px 3px 1px 0;color:#33404f}
+.pill{display:inline-block;border-radius:10px;font-size:11px;font-weight:600;padding:1px 8px}
+.pill.zero{background:#fdf3e3;color:#8a5a10;border:1px solid #ecd9b0}
+a.btn,button.btn{display:inline-block;background:var(--accent);color:#fff;border:0;border-radius:5px;
+  font:600 12px 'Open Sans',sans-serif;padding:6px 12px;text-decoration:none;cursor:pointer}
+a.btn.ghost,button.btn.ghost{background:var(--card);color:var(--accent);border:1px solid var(--accent)}
+a.btn:hover,button.btn:hover{filter:brightness(1.1)}
+select{font:13px 'Open Sans',sans-serif;padding:5px 8px;border:1px solid var(--line);border-radius:5px;background:#fff;max-width:420px}
+label.ctl{font-size:11.5px;font-weight:600;color:var(--ink);display:block;margin-bottom:3px}
+.qgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px}
+.qcard{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px 16px;display:flex;flex-direction:column}
+.qcard h3{margin:0 0 6px}
+.qcard p{font-size:12.5px;color:#5a6a80;flex:1;margin-bottom:10px}
+.qcard .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.sparkrow{display:flex;align-items:flex-end;gap:2px;height:26px}
+.sparkrow i{display:block;width:9px;background:var(--accent);opacity:.7;border-radius:1px 1px 0 0}
+.mini{font-size:11px;color:#5a6a80}
+#onepager .op-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;border-bottom:3px solid var(--navy);padding-bottom:10px;margin-bottom:14px}
+#onepager h2{font-size:23px;margin:0}
+#onepager .op-college{color:#5a6a80;font-size:13px}
+.op-kpis{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0 16px}
+.op-kpis .kpi{min-width:118px;padding:9px 12px}
+.op-kpis .kpi .v{font-size:21px}
+.hbar{margin:3px 0}
+.hbar .lab{font-size:12px;color:#33404f;display:flex;justify-content:space-between}
+.hbar .tr{background:#eef1f5;border-radius:3px;height:10px;margin-top:2px}
+.hbar .fl{background:var(--accent);opacity:.8;height:10px;border-radius:3px}
+.hbar .fl.gold{background:#b7791f}
+#loading{padding:40px;text-align:center;color:#5a6a80}
+@media print{
+  .aa-nav,.preview-strip,header,.tabs,#opControls,.noprint{display:none!important}
+  body{background:#fff}
+  main{max-width:none;padding:0}
+  section.tab{display:none!important}
+  #tab-onepagers{display:block!important}
+  .panel{border:none;padding:0}
+}
+</style>
+</head>
+<body>
+<div class="aa-nav">
+  <a href="key.html">Key</a>
+  <a href="details_v2.html">Details</a>
+  <a href="counts_v2.html">Counts</a>
+  <a href="network_viz.html">Network</a>
+  <a href="chord_viz.html">Chord</a>
+  <a href="matrix_viz.html">Matrix</a>
+  <a href="insights.html">Insights</a>
+  <span class="divider"></span>
+  <a href="intl_details_table.html">International Collabs</a>
+  <a href="intl_map.html">International Map</a>
+  <a href="intl_trends.html">International Trends</a>
+</div>
+<div class="preview-strip">ADMINISTRATOR PREVIEW — evaluation prototype. Not linked from the live site.</div>
+<header>
+  <h1>MIT Collaboration Network — Administrator Preview</h1>
+  <div class="sub">The same validated AAD2024-2904 data, reframed for decision-makers: headline findings,
+    plain-language questions, normalized department scorecards, untapped-collaboration opportunities,
+    printable department one-pagers, retention-risk signals, and international engagement briefs.</div>
+</header>
+<nav class="tabs" id="tabbar">
+  <button data-tab="summary" class="cur">Executive Summary</button>
+  <button data-tab="questions">Questions</button>
+  <button data-tab="scorecard">Scorecard</button>
+  <button data-tab="whitespace">White Space</button>
+  <button data-tab="onepagers">One-Pagers</button>
+  <button data-tab="retention">Retention Risk</button>
+  <button data-tab="intl">International</button>
+</nav>
+<main>
+  <div id="loading">Loading data&hellip; (serve this page over http — see serve.bat)</div>
+
+  <section class="tab" id="tab-summary">
+    <h2>Executive Summary</h2>
+    <p class="lede">Five findings an administrator can act on, computed from the SAS-validated
+      AAD2024-2904 universe (Department mode).</p>
+    <div class="cards" id="sumKpis"></div>
+    <div id="headlines"></div>
+    <div class="grid2" style="margin-top:16px">
+      <div class="panel">
+        <h3 style="margin-top:0">Most cross-department works per faculty member</h3>
+        <div id="topConn"></div>
+        <div class="mini" style="margin-top:6px">Departments with 10+ roster faculty. Cross-department
+          (&ldquo;across&rdquo;) distinct works divided by full faculty headcount &mdash; zero-collaboration
+          faculty included in the denominator.</div>
+      </div>
+      <div class="panel">
+        <h3 style="margin-top:0">Fewest cross-department works per faculty member</h3>
+        <div id="lowConn"></div>
+        <div class="mini" style="margin-top:6px">Low is not bad by itself &mdash; some fields publish
+          differently &mdash; but these are the places to ask why.</div>
+      </div>
+    </div>
+    <div class="note"><b>Methodology.</b> Distinct-works counting throughout (a work counts once per
+      department, however many people share it). &ldquo;Cross-department&rdquo; = the validated
+      &ldquo;across&rdquo; relationship; &ldquo;external&rdquo; = collaborators at other institutions.</div>
+  </section>
+
+  <section class="tab" id="tab-questions">
+    <h2>Start from a question</h2>
+    <p class="lede">Each card answers one question an administrator actually asks, either on this page or
+      by opening the Network page pre-configured to the right view &mdash; no need to learn its five modes first.</p>
+    <div class="qgrid" id="qcards"></div>
+    <div class="note"><b>Note.</b> Links into the Network page use its deep-link parameters
+      (anchor / view / scope). The Network page still runs on the preserved prototype person-pair data
+      (validated to agree with SAS at the person-pair level for Physics) &mdash; see HANDOFF.md.</div>
+  </section>
+
+  <section class="tab" id="tab-scorecard">
+    <h2>Department Scorecard</h2>
+    <p class="lede">Raw counts hide size effects &mdash; a 133-person school will out-count a 20-person
+      department at everything. This table normalizes per faculty member &mdash; using the full roster,
+      including faculty with zero collaborations &mdash; so departments are comparable.
+      Click a column header to sort.</p>
+    <div class="panel" style="padding:0;overflow-x:auto">
+      <table id="scoreTable"></table>
+    </div>
+    <h3>Career-stage lens</h3>
+    <p class="lede" style="font-size:13px">Do early-career faculty collaborate across department lines,
+      or is cross-department work concentrated among senior faculty?</p>
+    <div class="panel" style="padding:0;overflow-x:auto">
+      <table id="rankTable"></table>
+    </div>
+    <div class="note" id="rankNote"></div>
+    <div class="note"><b>Methodology.</b> Faculty = full-roster headcount (2026-07-15 roster,
+      1,482 faculty incl. those with zero collaborations); % collaborating = share with at least one
+      collaborative work. All per-faculty rates use the full-roster denominator. Multi-affiliated
+      people count in each of their departments (validated person-centric convention), so faculty
+      counts across rows sum to more than 1,482. *The Koch Institute is not a roster department;
+      its Faculty cell shows active collaborators instead. Works are distinct works, not
+      author-pair counts.</div>
+  </section>
+
+  <section class="tab" id="tab-whitespace">
+    <h2>White Space — where collaboration should exist but doesn&rsquo;t</h2>
+    <p class="lede">Department pairs whose faculty work in overlapping disciplines but rarely (or never)
+      publish together. High disciplinary similarity with low joint output is exactly where seed grants,
+      joint appointments, and shared facilities tend to pay off fastest.</p>
+    <div class="panel" style="padding:0;overflow-x:auto">
+      <table id="wsTable"></table>
+    </div>
+    <div class="note"><b>Methodology.</b> Similarity = cosine similarity of the two departments&rsquo;
+      faculty-discipline profiles (from each scholar&rsquo;s discipline fields). Joint works = SAS-exact
+      matrix cell for the pair. Score favors high similarity and low size-normalized joint output
+      (normalized by full-roster faculty headcounts). Departments with fewer than 8 faculty
+      excluded. MIT-WHOI pairs reflect the joint program&rsquo;s
+      structure &mdash; judge those with that context.</div>
+  </section>
+
+  <section class="tab" id="tab-onepagers">
+    <div id="opControls" class="panel" style="display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap">
+      <div>
+        <label class="ctl" for="opSel">Select Department</label>
+        <select id="opSel"></select>
+      </div>
+      <button class="btn" id="opPrint">Print / Save as PDF</button>
+      <span class="mini">The print view contains only this one-pager &mdash; ready for a dean&rsquo;s
+        packet or a board briefing.</span>
+    </div>
+    <div class="panel" id="onepager"></div>
+  </section>
+
+  <section class="tab" id="tab-retention">
+    <h2>Retention Risk — who is hardest to replace?</h2>
+    <p class="lede">For each department, the scholars whose departures would cost the most
+      cross-department connectivity. <b>Sole-coverage works</b> counts the department&rsquo;s
+      cross-department works on which this person is the only member involved &mdash; if they leave,
+      that bridge goes with them. A scholar with modest volume can still be a single point of failure.</p>
+    <div style="display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap;margin-bottom:12px">
+      <div>
+        <label class="ctl" for="retSel">Select Department</label>
+        <select id="retSel"></select>
+      </div>
+      <a class="btn ghost" id="retNetLink" target="_blank" rel="noopener">Open Bridges view in Network</a>
+    </div>
+    <div class="panel" style="padding:0;overflow-x:auto">
+      <table id="retTable"></table>
+    </div>
+    <h3>Institution-wide: top sole-coverage bridge scholars</h3>
+    <div class="panel" style="padding:0;overflow-x:auto">
+      <table id="retAllTable"></table>
+    </div>
+    <div class="note"><b>Methodology.</b> Computed from the SAS-validated person work lists
+      (person-centric convention). This complements the Network page&rsquo;s Bridges view, which ranks by
+      distinct-unit reach; sole-coverage measures irreplaceability instead of breadth.
+      Neither is a performance measure &mdash; both identify structural dependence.</div>
+  </section>
+
+  <section class="tab" id="tab-intl">
+    <h2>External &amp; International Engagement</h2>
+    <p class="lede">The international dataset (2018&ndash;2025) covers MIT scholars&rsquo; works with
+      external institutions, at home and abroad. Two administrator lenses: geographic exposure
+      (research-security and partnership offices) and non-academic engagement (corporate relations and
+      tech transfer).</p>
+    <div class="cards" id="intlKpis"></div>
+    <div class="grid2">
+      <div class="panel">
+        <h3 style="margin-top:0">External collaboration works by year</h3>
+        <div id="intlYears"></div>
+      </div>
+      <div class="panel">
+        <h3 style="margin-top:0">Partner Type</h3>
+        <div id="intlPtype"></div>
+        <div class="mini" style="margin-top:8px">Academic = Colleges, Universities, and Professional
+          Schools (NAICS); everything else &mdash; companies, hospitals, national labs, government
+          agencies &mdash; is Non-Academic. Same rule as the International Collabs page.</div>
+      </div>
+    </div>
+    <h3>Exposure by country</h3>
+    <div class="panel" style="padding:0;overflow-x:auto">
+      <table id="intlCountryTable"></table>
+    </div>
+    <h3>Top Non-Academic partners</h3>
+    <div class="panel" style="padding:0;overflow-x:auto">
+      <table id="intlNaTable"></table>
+    </div>
+    <div class="note"><b>Note.</b> This is the separate international dataset (own conventions &mdash;
+      Year is a real filter here; the United States rows are MIT&rsquo;s external U.S. partners, listed
+      for completeness). 2025 is a partial year in the source data. Distinct works per country: a work
+      with partners in three countries counts once in each.</div>
+  </section>
+</main>
+
+<script>
+(function(){
+"use strict";
+let D = null;
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmt = (n) => n == null ? "—" : Number(n).toLocaleString("en-US");
+const pct = (a, b) => b ? (100 * a / b).toFixed(1) + "%" : "—";
+const netUrl = (params) => "network_viz.html?" + new URLSearchParams(params).toString();
+
+/* ---------- tabs ---------- */
+$("tabbar").addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-tab]");
+  if (!b) return;
+  showTab(b.dataset.tab);
+});
+function showTab(name){
+  document.querySelectorAll("#tabbar button").forEach((b) => b.classList.toggle("cur", b.dataset.tab === name));
+  document.querySelectorAll("section.tab").forEach((s) => s.classList.toggle("cur", s.id === "tab-" + name));
+  history.replaceState(null, "", location.pathname + "#" + name);
+}
+
+/* ---------- summary ---------- */
+function renderSummary(){
+  const s = D.summary;
+  $("sumKpis").innerHTML = [
+    [fmt(s.universe), "scholarly works (AAD2024-2904)"],
+    [fmt(s.facultyTotal), "MIT faculty (full roster)"],
+    [s.pctFacultyActive + "%", "of faculty have a collaborative work"],
+    [pct(s.crossUnitWorks, s.universe), "of works span 2+ departments"],
+    [pct(s.externalWorks, s.universe), "of works have an external collaborator"],
+    [s.interdiscPct + "%", "of works are cross-discipline"],
+  ].map(([v, l]) => `<div class="kpi"><div class="v">${v}</div><div class="l">${esc(l)}</div></div>`).join("");
+
+  const rl = {}; D.rankLens.forEach((r) => rl[r.rank] = r);
+  const prof = rl["Professor"], asst = rl["Assistant Professor"];
+  const ws0 = D.whitespace[0];
+  const heads = [
+    `MIT's <b>${fmt(s.facultyTotal)}</b> faculty include <b>${fmt(s.scholars)}</b> (<b>${s.pctFacultyActive}%</b>) with at least one collaborative work &mdash; <b>${fmt(s.universe)}</b> works in all; <b>${pct(s.externalWorks, s.universe)}</b> involve a collaborator outside MIT and <b>${pct(s.internalWorks, s.universe)}</b> involve another MIT scholar.`,
+    `<b>${fmt(s.crossUnitWorks)}</b> works (<b>${pct(s.crossUnitWorks, s.universe)}</b>) span two or more MIT departments &mdash; the cross-department activity most interdisciplinary initiatives aim to grow.`,
+    `Cross-department work is concentrated among senior faculty: <b>${prof ? prof.pctAcross : "—"}%</b> of full professors have at least one cross-department work vs <b>${asst ? asst.pctAcross : "—"}%</b> of assistant professors &mdash; worth asking whether early-career faculty have the connections, incentives, and time to work across lines. (Career-stage detail in the Scorecard tab.)`,
+    ws0 ? `The largest untapped pairing: <b>${esc(ws0.a)}</b> and <b>${esc(ws0.b)}</b> share faculty disciplines (similarity ${ws0.sim}) but have <b>${ws0.actual === 0 ? "no" : "only " + fmt(ws0.actual)}</b> joint works &mdash; the White Space tab ranks ${D.whitespace.length} such opportunities.` : "",
+    `Per faculty member (full-roster denominators, zero-collaboration faculty included), the most cross-department-connected department is <b>${esc(s.topConnected[0][0])}</b> (${s.topConnected[0][1]} works/faculty); the least is <b>${esc(s.leastConnected[0][0])}</b> (${s.leastConnected[0][1]}).`,
+  ].filter(Boolean);
+  $("headlines").innerHTML = heads.map((h) => `<div class="headline">${h}</div>`).join("");
+
+  const mkBars = (rows, max) => rows.map(([lab, v]) =>
+    `<div class="hbar"><div class="lab"><span>${esc(lab)}</span><span><b>${v}</b></span></div>
+     <div class="tr"><div class="fl" style="width:${Math.max(2, 100 * v / max)}%"></div></div></div>`).join("");
+  const mx = Math.max(...s.topConnected.map((r) => r[1]));
+  $("topConn").innerHTML = mkBars(s.topConnected, mx);
+  $("lowConn").innerHTML = mkBars(s.leastConnected, mx);
+}
+
+/* ---------- questions ---------- */
+function deptOptions(sel, withKeyOnly){
+  return D.departments
+    .filter((d) => !withKeyOnly || d.netKey)
+    .map((d) => `<option value="${esc(d.label)}"${d.label === sel ? " selected" : ""}>${esc(d.label)}</option>`).join("");
+}
+function renderQuestions(){
+  const qs = [
+    {
+      t: "Which departments are most siloed?",
+      p: "Rank every department by cross-department works per faculty member — full-roster denominators, so small departments compete fairly.",
+      html: `<button class="btn" data-goto="scorecard" data-sort="acrossPerFaculty-asc">Open Scorecard, least-connected first</button>`,
+    },
+    {
+      t: "Who connects a department to the rest of MIT?",
+      p: "The Network page's Bridges view ranks a department's scholars by how many distinct MIT units their cross-department collaborators span.",
+      html: `<select id="qBridgeSel">${deptOptions("Physics, Department of", true)}</select>
+             <a class="btn" id="qBridgeGo" target="_blank" rel="noopener">Open Bridges view</a>`,
+    },
+    {
+      t: "How do two departments' collaboration profiles compare?",
+      p: "Side-by-side: shared partners, unique partners, and the scholars behind each tie.",
+      html: `<select id="qCmpA">${deptOptions("Physics, Department of", true)}</select>
+             <select id="qCmpB">${deptOptions("Materials Science and Engineering, Department of", true)}</select>
+             <a class="btn" id="qCmpGo" target="_blank" rel="noopener">Compare in Network</a>`,
+    },
+    {
+      t: "Where should we seed-fund new cross-department work?",
+      p: "Department pairs with overlapping faculty disciplines but little or no joint output — ranked.",
+      html: `<button class="btn" data-goto="whitespace">Open White Space</button>`,
+    },
+    {
+      t: "Whose departure would cost us the most connectivity?",
+      p: "Scholars who are the sole member of their department on its cross-department works.",
+      html: `<button class="btn" data-goto="retention">Open Retention Risk</button>`,
+    },
+    {
+      t: "Where does a department collaborate outside MIT?",
+      p: "The Network page's Explore view scoped to external collaborations only.",
+      html: `<select id="qExtSel">${deptOptions("Chemical Engineering, Department of", true)}</select>
+             <a class="btn" id="qExtGo" target="_blank" rel="noopener">Open external map</a>`,
+    },
+    {
+      t: "What is our international footprint — and exposure?",
+      p: "Distinct works by partner country and year, plus the academic vs non-academic split.",
+      html: `<button class="btn" data-goto="intl">Open International</button>
+             <a class="btn ghost" href="intl_map.html" target="_blank" rel="noopener">World map</a>`,
+    },
+    {
+      t: "What do I hand my dean before a budget meeting?",
+      p: "A printable one-page profile per department: output, partners, people to know, international reach.",
+      html: `<button class="btn" data-goto="onepagers">Open One-Pagers</button>`,
+    },
+  ];
+  $("qcards").innerHTML = qs.map((q) =>
+    `<div class="qcard"><h3>${esc(q.t)}</h3><p>${esc(q.p)}</p><div class="row">${q.html}</div></div>`).join("");
+
+  const keyOf = (label) => (D.departments.find((d) => d.label === label) || {}).netKey;
+  const wire = (selId, goId, mk) => {
+    const upd = () => { $(goId).href = mk($(selId).value); };
+    $(selId).addEventListener("change", upd); upd();
+  };
+  wire("qBridgeSel", "qBridgeGo", (v) => netUrl({anchor: keyOf(v), view: "bridges", scope: "across_units"}));
+  wire("qExtSel", "qExtGo", (v) => netUrl({anchor: keyOf(v), scope: "inter"}));
+  const updCmp = () => {
+    const a = keyOf($("qCmpA").value), b = keyOf($("qCmpB").value);
+    $("qCmpGo").href = netUrl({anchor: a, view: "compare", ca: a, cb: b, scope: "all"});
+  };
+  $("qCmpA").addEventListener("change", updCmp);
+  $("qCmpB").addEventListener("change", updCmp);
+  updCmp();
+
+  $("qcards").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-goto]");
+    if (!b) return;
+    showTab(b.dataset.goto);
+    if (b.dataset.sort) { scoreSort = b.dataset.sort.split("-"); renderScorecard(); }
+    window.scrollTo({top: 0});
+  });
+}
+
+/* ---------- scorecard ---------- */
+let scoreSort = ["acrossPerFaculty", "desc"];
+const SCORE_COLS = [
+  ["label", "Department", false],
+  ["college", "College/School", false],
+  ["faculty", "Faculty", true],
+  ["pctActive", "% collaborating", true],
+  ["within", "Within-dept works", true],
+  ["across", "Cross-dept works", true],
+  ["acrossPerFaculty", "Cross-dept / faculty", true],
+  ["inter", "External works", true],
+  ["interPerFaculty", "External / faculty", true],
+  ["interdiscPct", "Cross-discipline %", true],
+];
+function renderScorecard(){
+  const [key, dir] = scoreSort;
+  const rows = D.departments.slice().sort((a, b) => {
+    const av = a[key] == null ? -1 : a[key], bv = b[key] == null ? -1 : b[key];
+    if (typeof av === "string") return dir === "asc" ? av.localeCompare(bv) : bv.localeCompare(av);
+    return dir === "asc" ? av - bv : bv - av;
+  });
+  const maxAps = Math.max(...D.departments.map((d) => d.acrossPerFaculty || 0));
+  $("scoreTable").innerHTML =
+    "<thead><tr>" + SCORE_COLS.map(([k, lab, num]) =>
+      `<th class="sortable${num ? " num" : ""}" data-key="${k}">${esc(lab)}${key === k ? ` <span class="arrow">${dir === "asc" ? "▲" : "▼"}</span>` : ""}</th>`
+    ).join("") + "</tr></thead><tbody>" +
+    rows.map((d) => `<tr>
+      <td><b>${esc(d.label)}</b>${d.zeroCollab ? ' <span class="pill zero">no recorded collabs</span>' : ""}</td>
+      <td>${esc(d.college || "")}</td>
+      <td class="num">${d.faculty == null ? fmt(d.active) + "*" : fmt(d.faculty)}</td>
+      <td class="num">${d.pctActive == null ? "—" : d.pctActive + "%"}</td>
+      <td class="num">${fmt(d.within)}</td>
+      <td class="num">${fmt(d.across)}</td>
+      <td class="num"><span class="bar" style="width:${Math.max(2, 52 * (d.acrossPerFaculty || 0) / maxAps)}px"></span>${d.acrossPerFaculty ?? "—"}</td>
+      <td class="num">${fmt(d.inter)}</td>
+      <td class="num">${d.interPerFaculty ?? "—"}</td>
+      <td class="num">${d.interdiscPct}%</td>
+    </tr>`).join("") + "</tbody>";
+  $("scoreTable").querySelectorAll("th.sortable").forEach((th) => th.addEventListener("click", () => {
+    const k = th.dataset.key;
+    scoreSort = [k, scoreSort[0] === k && scoreSort[1] === "desc" ? "asc" : "desc"];
+    renderScorecard();
+  }));
+
+  $("rankTable").innerHTML =
+    `<thead><tr><th>Rank</th><th class="num">Faculty (roster)</th>
+      <th class="num">% with any collaboration</th>
+      <th class="num">% with a cross-dept work</th>
+      <th class="num">% with an external work</th><th class="num">Median external works</th></tr></thead><tbody>` +
+    D.rankLens.map((r) => `<tr>
+      <td><b>${esc(r.rank)}</b></td><td class="num">${fmt(r.n)}</td>
+      <td class="num">${r.pctActive}%</td>
+      <td class="num"><span class="bar" style="width:${Math.max(2, r.pctAcross * 0.6)}px"></span>${r.pctAcross}%</td>
+      <td class="num"><span class="bar gold" style="width:${Math.max(2, r.pctInter * 0.6)}px"></span>${r.pctInter}%</td>
+      <td class="num">${r.medInter}</td>
+    </tr>`).join("") + "</tbody>";
+  const rl = {}; D.rankLens.forEach((r) => rl[r.rank] = r);
+  if (rl["Professor"] && rl["Assistant Professor"]) {
+    $("rankNote").innerHTML = `<b>Reading this:</b> external collaboration is near-universal at every rank,
+      but cross-department collaboration climbs with seniority (${rl["Assistant Professor"].pctAcross}% of
+      assistant professors → ${rl["Professor"].pctAcross}% of full professors). If cross-department work is
+      a strategic goal, early-career faculty are where the growth is.`;
+  }
+}
+
+/* ---------- white space ---------- */
+function renderWhitespace(){
+  $("wsTable").innerHTML =
+    `<thead><tr><th>#</th><th>Department pair</th><th>Colleges / Schools</th>
+      <th class="num">Faculty</th><th class="num">Discipline similarity</th>
+      <th class="num">Joint works</th><th>Shared disciplines</th><th></th></tr></thead><tbody>` +
+    D.whitespace.map((w, i) => `<tr>
+      <td class="num">${i + 1}</td>
+      <td><b>${esc(w.a)}</b><br><b>${esc(w.b)}</b></td>
+      <td class="mini">${esc(w.collegeA || "")}<br>${esc(w.collegeB || "")}</td>
+      <td class="num">${w.facultyA} / ${w.facultyB}</td>
+      <td class="num"><span class="bar" style="width:${Math.max(2, w.sim * 55)}px"></span>${w.sim}</td>
+      <td class="num">${w.actual === 0 ? '<span class="pill zero">none</span>' : fmt(w.actual)}</td>
+      <td>${w.sharedDisc.map((s) => `<span class="chip">${esc(s)}</span>`).join("")}</td>
+      <td>${w.keyA && w.keyB ? `<a class="btn ghost" target="_blank" rel="noopener" href="${esc(netUrl({anchor: w.keyA, view: "compare", ca: w.keyA, cb: w.keyB, scope: "all"}))}">Compare</a>` : ""}</td>
+    </tr>`).join("") + "</tbody>";
+}
+
+/* ---------- one-pagers ---------- */
+function renderOnePager(label){
+  const d = D.departments.find((x) => x.label === label);
+  if (!d) { $("onepager").innerHTML = ""; return; }
+  const ret = (D.retention[label] || []).slice(0, 5);
+  const intl = (D.intl && D.intl.perDept && D.intl.perDept[label]) || null;
+  const mkBars = (rows, cls) => {
+    const mx = Math.max(...rows.map((r) => r[1]), 1);
+    return rows.map(([lab, v]) =>
+      `<div class="hbar"><div class="lab"><span>${esc(lab)}</span><span><b>${fmt(v)}</b></span></div>
+       <div class="tr"><div class="fl${cls ? " " + cls : ""}" style="width:${Math.max(2, 100 * v / mx)}%"></div></div></div>`).join("");
+  };
+  const rankRows = (d.rankEngage || []).map((r) => `
+    <div class="hbar" style="margin-bottom:7px">
+      <div class="lab"><span><b>${esc(r.rank)}</b> <span class="mini">(${r.faculty} faculty)</span></span>
+        <span class="mini">any <b>${r.pctAny}%</b> &middot; cross-dept <b>${r.pctAcross}%</b></span></div>
+      <div class="tr" title="% with any collaborative work"><div class="fl" style="width:${Math.max(1, r.pctAny)}%"></div></div>
+      <div class="tr" style="margin-top:2px" title="% with a cross-department work"><div class="fl gold" style="width:${Math.max(1, r.pctAcross)}%"></div></div>
+    </div>`).join("");
+  $("onepager").innerHTML = `
+    <div class="op-head">
+      <div>
+        <h2>${esc(d.label)}</h2>
+        <div class="op-college">${esc(d.college || "")} &middot; AAD2024-2904 &middot; Collaboration profile</div>
+      </div>
+      <div class="noprint" style="display:flex;gap:8px;flex-wrap:wrap">
+        ${d.netKey ? `<a class="btn ghost" target="_blank" rel="noopener" href="${esc(netUrl({anchor: d.netKey, scope: "all"}))}">Network</a>
+        <a class="btn ghost" target="_blank" rel="noopener" href="${esc(netUrl({anchor: d.netKey, view: "bridges", scope: "across_units"}))}">Bridges</a>` : ""}
+        <a class="btn ghost" target="_blank" rel="noopener" href="counts_v2.html">Counts</a>
+      </div>
+    </div>
+    <div class="op-kpis">
+      <div class="kpi"><div class="v">${d.faculty == null ? fmt(d.active) + "*" : fmt(d.faculty)}</div><div class="l">faculty${d.faculty == null ? " (active collaborators*)" : " (full roster)"}</div></div>
+      <div class="kpi"><div class="v">${d.pctActive == null ? "—" : d.pctActive + "%"}</div><div class="l">collaborating</div></div>
+      <div class="kpi"><div class="v">${fmt(d.within)}</div><div class="l">within-dept works</div></div>
+      <div class="kpi"><div class="v">${fmt(d.across)}</div><div class="l">cross-dept works</div></div>
+      <div class="kpi"><div class="v">${d.acrossPerFaculty ?? "—"}</div><div class="l">cross-dept works / faculty</div></div>
+      <div class="kpi"><div class="v">${fmt(d.inter)}</div><div class="l">works with external partners</div></div>
+      <div class="kpi"><div class="v">${d.interdiscPct}%</div><div class="l">cross-discipline works</div></div>
+    </div>
+    <div class="grid2">
+      <div>
+        <h3 style="margin-top:0">Top MIT partner departments <span class="mini">(distinct joint works)</span></h3>
+        ${d.partners.length ? mkBars(d.partners) : '<div class="mini">No cross-department works recorded.</div>'}
+        <h3>Faculty engagement by rank <span class="mini">(blue = % with any collaboration; gold = % with a cross-department work)</span></h3>
+        ${rankRows || '<div class="mini">No roster ranks available for this unit.</div>'}
+      </div>
+      <div>
+        <h3 style="margin-top:0">People to know <span class="mini">(sole-coverage bridge scholars)</span></h3>
+        ${ret.length ? `<table><thead><tr><th>Scholar</th><th>Rank</th>
+          <th class="num">Sole-coverage</th><th class="num">Cross-dept</th><th class="num">External</th></tr></thead><tbody>` +
+          ret.map((r) => `<tr><td><b>${esc(r.name)}</b></td><td class="mini">${esc(r.rank)}</td>
+            <td class="num">${r.unique}</td><td class="num">${r.across}</td><td class="num">${r.inter}</td></tr>`).join("") +
+          "</tbody></table>" : '<div class="mini">No cross-department works recorded.</div>'}
+        <h3>International reach <span class="mini">(2018&ndash;2025 dataset)</span></h3>
+        ${intl ? `<div class="mini" style="margin-bottom:6px"><b>${fmt(intl.works)}</b> works with external
+          institutions &middot; <b>${fmt(intl.partners)}</b> partner institutions &middot;
+          <b>${fmt(intl.countries)}</b> countries</div>` + mkBars(intl.topCountries)
+        : '<div class="mini">Not present in the international dataset under this department name.</div>'}
+      </div>
+    </div>
+    <div class="note" style="margin-top:14px"><b>Reading this page.</b> Faculty counts and all
+      percentages use the full 2026-07-15 roster (zero-collaboration faculty included in denominators);
+      distinct-works counting; person metrics use the person-centric convention.
+      ${d.faculty == null ? "*This unit is not a roster department, so its headcount shows active collaborators only. " : ""}
+      &ldquo;Sole-coverage&rdquo; = cross-department works on
+      which this scholar is the department&rsquo;s only member &mdash; a structural-dependence signal, not a
+      performance measure. International figures come from the separate 2018&ndash;2025 dataset and include
+      U.S. external partners.</div>`;
+}
+
+/* ---------- retention ---------- */
+function renderRetention(label){
+  const rows = D.retention[label] || [];
+  const d = D.departments.find((x) => x.label === label);
+  const link = $("retNetLink");
+  if (d && d.netKey) { link.style.display = ""; link.href = netUrl({anchor: d.netKey, view: "bridges", scope: "across_units"}); }
+  else link.style.display = "none";
+  $("retTable").innerHTML =
+    `<thead><tr><th>Scholar</th><th>Rank</th><th class="num">Sole-coverage works</th>
+      <th class="num">Cross-dept works</th><th class="num">External works</th></tr></thead><tbody>` +
+    (rows.length ? rows.map((r) => `<tr>
+      <td><b>${esc(r.name)}</b></td><td>${esc(r.rank)}</td>
+      <td class="num"><span class="bar" style="width:${Math.max(2, r.unique * 4)}px"></span>${r.unique}</td>
+      <td class="num">${r.across}</td><td class="num">${r.inter}</td>
+    </tr>`).join("") : '<tr><td colspan="5" class="mini">No cross-department works recorded for this department.</td></tr>') +
+    "</tbody>";
+}
+function renderRetentionAll(){
+  const all = [];
+  Object.entries(D.retention).forEach(([dept, rows]) => rows.forEach((r) => all.push({...r, dept})));
+  all.sort((a, b) => b.unique - a.unique || b.across - a.across);
+  $("retAllTable").innerHTML =
+    `<thead><tr><th>Scholar</th><th>Department</th><th>Rank</th>
+      <th class="num">Sole-coverage works</th><th class="num">Cross-dept works</th></tr></thead><tbody>` +
+    all.slice(0, 15).map((r) => `<tr>
+      <td><b>${esc(r.name)}</b></td><td>${esc(r.dept)}</td><td>${esc(r.rank)}</td>
+      <td class="num">${r.unique}</td><td class="num">${r.across}</td>
+    </tr>`).join("") + "</tbody>";
+}
+
+/* ---------- international ---------- */
+function renderIntl(){
+  const it = D.intl;
+  if (!it) return;
+  const nonUS = it.countries.filter((c) => c.country !== "UNITED STATES").length;
+  $("intlKpis").innerHTML = [
+    [fmt(it.totalWorks), "distinct works with external institutions"],
+    [fmt(it.totalPartners), "partner institutions"],
+    [fmt(nonUS), "countries outside the U.S."],
+    [fmt(it.totalScholars), "MIT scholars involved"],
+  ].map(([v, l]) => `<div class="kpi"><div class="v">${v}</div><div class="l">${esc(l)}</div></div>`).join("");
+
+  const mx = Math.max(...Object.values(it.byYearTotal));
+  $("intlYears").innerHTML = '<div class="sparkrow" style="height:64px;gap:6px">' +
+    it.years.map((y) => `<div style="text-align:center">
+      <i style="height:${Math.max(3, 58 * it.byYearTotal[y] / mx)}px;width:34px" title="${y}: ${fmt(it.byYearTotal[y])}"></i>
+      <div class="mini">${y}</div><div class="mini"><b>${fmt(it.byYearTotal[y])}</b></div></div>`).join("") + "</div>";
+
+  const pt = it.partnerType;
+  const mxw = Math.max(pt.worksAcademic, pt.worksNonAcademic);
+  $("intlPtype").innerHTML =
+    `<div class="hbar"><div class="lab"><span>Academic partners</span><span><b>${fmt(pt.worksAcademic)}</b> works &middot; ${fmt(pt.instAcademic)} institutions</span></div>
+      <div class="tr"><div class="fl" style="width:${100 * pt.worksAcademic / mxw}%"></div></div></div>
+     <div class="hbar"><div class="lab"><span>Non-Academic partners</span><span><b>${fmt(pt.worksNonAcademic)}</b> works &middot; ${fmt(pt.instNonAcademic)} institutions</span></div>
+      <div class="tr"><div class="fl gold" style="width:${100 * pt.worksNonAcademic / mxw}%"></div></div></div>
+     <div style="margin-top:10px">${pt.topNaics.slice(0, 8).map(([k, v]) => `<span class="chip" title="${fmt(v)} works">${esc(k)} (${fmt(v)})</span>`).join("")}</div>`;
+
+  const top = it.countries.slice(0, 25);
+  const mxc = Math.max(...top.map((c) => c.works));
+  const mxy = Math.max(...top.flatMap((c) => Object.values(c.byYear)));
+  $("intlCountryTable").innerHTML =
+    `<thead><tr><th>Country</th><th class="num">Distinct works</th><th class="num">MIT scholars</th>
+      <th>By year (${it.years[0]}&ndash;${it.years[it.years.length - 1]})</th></tr></thead><tbody>` +
+    top.map((c) => `<tr>
+      <td><b>${esc(c.country)}</b></td>
+      <td class="num"><span class="bar" style="width:${Math.max(2, 70 * c.works / mxc)}px"></span>${fmt(c.works)}</td>
+      <td class="num">${fmt(c.scholars)}</td>
+      <td><div class="sparkrow">${it.years.map((y) =>
+        `<i style="height:${Math.max(2, 24 * (c.byYear[y] || 0) / mxy)}px" title="${y}: ${fmt(c.byYear[y] || 0)}"></i>`).join("")}</div></td>
+    </tr>`).join("") + "</tbody>";
+
+  $("intlNaTable").innerHTML =
+    `<thead><tr><th>Institution</th><th>Country</th><th class="num">Distinct works</th></tr></thead><tbody>` +
+    pt.topNonAcademic.map(([name, works, country]) => `<tr>
+      <td><b>${esc(name)}</b></td><td>${esc(country)}</td><td class="num">${fmt(works)}</td>
+    </tr>`).join("") + "</tbody>";
+}
+
+/* ---------- boot ---------- */
+fetch("data/admin/admin_data.json")
+  .then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
+  .then((data) => {
+    D = data;
+    $("loading").style.display = "none";
+    renderSummary();
+    renderQuestions();
+    renderScorecard();
+    renderWhitespace();
+    renderIntl();
+    renderRetentionAll();
+
+    const sel = $("opSel"), rsel = $("retSel");
+    sel.innerHTML = deptOptions("Physics, Department of", false);
+    rsel.innerHTML = deptOptions("Physics, Department of", false);
+    sel.addEventListener("change", () => renderOnePager(sel.value));
+    rsel.addEventListener("change", () => renderRetention(rsel.value));
+    renderOnePager(sel.value);
+    renderRetention(rsel.value);
+    $("opPrint").addEventListener("click", () => { showTab("onepagers"); window.print(); });
+
+    const h = location.hash.replace("#", "");
+    if (h && document.getElementById("tab-" + h)) showTab(h);
+  })
+  .catch((err) => {
+    $("loading").innerHTML = "Could not load <b>data/admin/admin_data.json</b> (" + esc(err.message) +
+      "). Run <code>sas/build_admin_preview.py</code> (phase1 then phase2) and serve this page over http (serve.bat).";
+  });
+})();
+</script>
+</body>
+</html>
