@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AAD2024 Snapshot — Overview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Text:wght@600;700&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root{--navy:#254467;--ink:#052448;--bg:#f3f5f9;--card:#fff;--muted:#5a6a8a;--accent:#0066b4;--border:#d0d8e8;--line:#e2e5ea;}
+body{font:15px/1.7 'Open Sans',-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:#1c2330;
+     display:flex;flex-direction:column;min-height:100vh}
+header.doc{background:var(--navy);color:#fff;padding:0 28px;display:flex;align-items:center;gap:16px;height:54px;
+  position:sticky;top:0;z-index:100}
+header.doc .site-title{font-family:'Crimson Text',serif;font-size:17px;font-weight:700;font-variant-numeric:lining-nums}
+main{flex:1;max-width:880px;margin:0 auto;width:100%;padding:36px 32px 70px}
+.page-title{font-family:'Crimson Text',serif;font-size:28px;font-weight:700;color:var(--ink);margin-bottom:24px}
+.about-card{background:var(--card);border:1px solid var(--border);border-left:4px solid var(--navy);border-radius:0 8px 8px 0;
+  padding:22px 26px;margin-bottom:36px}
+.kicker{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin-bottom:10px}
+.about-card p{color:#33415c;font-size:14.5px;margin-bottom:12px}
+.about-card p:last-child{margin-bottom:0}
+.about-card a{color:var(--accent);font-weight:600;text-decoration:none}
+.about-card a:hover{text-decoration:underline}
+.section-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 14px}
+.goto-list{display:flex;flex-direction:column;gap:2px;border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--card)}
+.goto-row{display:flex;align-items:center;gap:18px;padding:15px 20px;border-bottom:1px solid var(--line)}
+.goto-row:last-child{border-bottom:0}
+.goto-row .role{font-weight:700;color:var(--ink);min-width:180px;font-size:14px}
+.goto-row .links{display:flex;flex-wrap:wrap;gap:8px}
+.goto-row .links a{font-size:12.5px;font-weight:600;color:var(--accent);text-decoration:none;border:1px solid var(--border);
+  border-radius:14px;padding:5px 12px;background:#f7f9fc}
+.goto-row .links a:hover{background:#eef4fa;border-color:var(--accent)}
+@media (max-width:640px){
+  .goto-row{flex-direction:column;align-items:flex-start;gap:8px}
+}
+</style>
+</head>
+<body>
+<div id="aa-nav"></div>
+<script src="nav.js" defer></script>
+<main>
+<h1 class="page-title">AAD2024 Snapshot</h1>
+
+<div class="about-card">
+  <div class="kicker">About this dataset</div>
+  <p>The authoritative picture of current MIT faculty collaborations, drawn from the research works in the AAD2024 data cycle &mdash; roughly 1,270 scholars and 16,747 works.</p>
+  <p>Counting conventions (Within/Across/Inter, distinct works vs. partner-summed) are documented in the <a href="key.html">Key</a>.</p>
+  <p>This is a point-in-time snapshot, not a longitudinal record. For multi-year external engagement, see <a href="intl_overview.html">International &amp; Industry</a>.</p>
+</div>
+
+<div class="section-label">Where to go</div>
+<div class="goto-list">
+  <div class="goto-row">
+    <div class="role">Institution leadership</div>
+    <div class="links"><a href="counts_v2.html?level=institution&pct=on">Counts</a><a href="insights.html">Insights</a></div>
+  </div>
+  <div class="goto-row">
+    <div class="role">Department heads</div>
+    <div class="links"><a href="counts_v2.html?level=department">Counts</a><a href="network_viz.html?level=unit&uk=Department">Network</a></div>
+  </div>
+  <div class="goto-row">
+    <div class="role">Analysts</div>
+    <div class="links"><a href="details_v2.html">Details</a><a href="network_viz.html">Network</a><a href="chord_matrix.html">Chord &amp; Matrix</a></div>
+  </div>
+</div>
+</main>
+<script src="agent_widget.js" defer></script>
+</body>
+</html>

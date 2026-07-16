@@ -10,19 +10,8 @@
   <link rel="stylesheet" href="network_viz.css?v=20260714-compare">
 </head>
 <body>
-  <nav class="aa-nav" aria-label="Primary navigation">
-    <a href="key.html">Key</a>
-    <a href="details_v2.html">Details</a>
-    <a href="counts_v2.html">Counts</a>
-    <a href="network_viz.html" class="cur" aria-current="page">Network</a>
-    <a href="chord_viz.html">Chord</a>
-    <a href="matrix_viz.html">Matrix</a>
-    <a href="insights.html">Insights</a>
-    <span class="divider" aria-hidden="true"></span>
-    <a href="intl_details_table.html">International Collabs</a>
-    <a href="intl_map.html">International Map</a>
-    <a href="intl_trends.html">International Trends</a>
-  </nav>
+  <div id="aa-nav"></div>
+  <script src="nav.js" defer></script>
 
   <div class="network-app">
     <header class="network-header">
@@ -71,6 +60,16 @@
               <button type="button" data-value="inter">External</button>
               <button type="button" data-value="all" class="active">All</button>
             </div>
+          </div>
+
+          <div class="field" id="topPartnersField">
+            <label for="topPartnersSelect">Show partners</label>
+            <select id="topPartnersSelect">
+              <option value="25">Top 25</option>
+              <option value="50" selected>Top 50</option>
+              <option value="100">Top 100</option>
+              <option value="all">All</option>
+            </select>
           </div>
 
           <div class="field search-field" id="scholarSearchField">
@@ -204,7 +203,7 @@
 
   <div class="toast" id="toast" role="status" hidden></div>
 
-  <script src="network_viz.js?v=20260714-compare" defer></script>
+  <script src="network_viz.js?v=20260716-topn4" defer></script>
   <script src="agent_widget.js" defer></script>
 </body>
 </html>

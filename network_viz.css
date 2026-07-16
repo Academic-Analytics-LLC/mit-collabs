@@ -77,44 +77,6 @@ a:focus-visible {
   border: 0;
 }
 
-.aa-nav {
-  display: flex;
-  flex-shrink: 0;
-  gap: 18px;
-  min-height: 39px;
-  overflow-x: auto;
-  padding: 7px 20px;
-  background: #052448;
-  scrollbar-width: thin;
-  white-space: nowrap;
-}
-
-.aa-nav a {
-  flex: 0 0 auto;
-  padding: 3px 2px;
-  border-bottom: 2px solid transparent;
-  color: rgba(255, 255, 255, 0.72);
-  font-size: 12px;
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.aa-nav a:hover,
-.aa-nav a.cur {
-  color: #ffffff;
-}
-
-.aa-nav a.cur {
-  border-bottom-color: #53a6df;
-}
-
-.aa-nav .divider {
-  width: 2px;
-  align-self: stretch;
-  margin: 0 6px;
-  background: rgba(255, 255, 255, 0.8);
-}
-
 .network-app {
   display: flex;
   flex-direction: column;

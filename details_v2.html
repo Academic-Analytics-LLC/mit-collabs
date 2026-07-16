@@ -120,29 +120,11 @@ a.netlink:hover{color:var(--accent)}
 footer{padding:10px 20px;color:#5a6a80;font-size:11px}
 .err{padding:40px;text-align:center;color:#8a2b2b}
 .loading{padding:40px;text-align:center;color:#5a6a80}
-.aa-nav{background:#052448;padding:7px 20px;display:flex;gap:18px;
-  font:12px 'Open Sans',-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;flex-shrink:0}
-.aa-nav a{color:rgba(255,255,255,.7);text-decoration:none;font-weight:600;letter-spacing:.02em;
-  padding:3px 2px;border-bottom:2px solid transparent}
-.aa-nav a:hover{color:#fff}
-.aa-nav a.cur{color:#fff;border-bottom-color:#0066b4}
-.aa-nav .divider{display:block;width:2px;align-self:stretch;background:#fff;margin:0 6px}
 </style>
 </head>
 <body>
-<div class="aa-nav">
-  <a href="key.html">Key</a>
-  <a href="details_v2.html" class="cur">Details</a>
-    <a href="counts_v2.html">Counts</a>
-  <a href="network_viz.html">Network</a>
-  <a href="chord_viz.html">Chord</a>
-  <a href="matrix_viz.html">Matrix</a>
-  <a href="insights.html">Insights</a>
-  <span class="divider"></span>
-  <a href="intl_details_table.html">International Collabs</a>
-  <a href="intl_map.html">International Map</a>
-  <a href="intl_trends.html">International Trends</a>
-</div>
+<div id="aa-nav"></div>
+<script src="nav.js" defer></script>
 <header>
   <h1>MIT Collaboration Details AAD2024</h1>
   <div class="hdr-row">

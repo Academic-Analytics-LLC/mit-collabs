@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>MIT Collaboration Network — Administrator Preview</title>
 <!--
-  ADMINISTRATOR PREVIEW — evaluation prototype, deliberately NOT in the shared .aa-nav.
+  ADMINISTRATOR PREVIEW — evaluation prototype. Enabled in the shared nav 2026-07-16
+  (AAD2024 Snapshot dropdown: "Admin Overview" + "One-Pagers" -> #onepagers). Uses shared nav.js.
   Reframes the existing validated data through a university-administrator lens:
     Executive Summary · Questions · Scorecard (+ rank lens) · White Space ·
     Department One-Pagers (print-friendly) · Retention Risk · International.
@@ -27,12 +28,6 @@
 :root{--navy:#254467;--ink:#052448;--bg:#f7f7f7;--card:#fff;--text:#212529;--accent:#0066b4;--line:#e2e5ea;}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font:14px/1.45 'Open Sans',-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:var(--text);background:var(--bg)}
-.aa-nav{background:#052448;padding:7px 20px;display:flex;gap:18px;flex-wrap:wrap;
-  font:12px 'Open Sans',-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif}
-.aa-nav a{color:rgba(255,255,255,.7);text-decoration:none;font-weight:600;letter-spacing:.02em;
-  padding:3px 2px;border-bottom:2px solid transparent}
-.aa-nav a:hover{color:#fff}
-.aa-nav .divider{display:block;width:2px;align-self:stretch;background:#fff;margin:0 6px}
 .preview-strip{background:#b7791f;color:#fff;text-align:center;font-size:12px;font-weight:600;
   letter-spacing:.03em;padding:5px 16px}
 header{background:var(--navy);color:#fff;padding:16px 24px}
@@ -111,20 +106,9 @@ label.ctl{font-size:11.5px;font-weight:600;color:var(--ink);display:block;margin
 </style>
 </head>
 <body>
-<div class="aa-nav">
-  <a href="key.html">Key</a>
-  <a href="details_v2.html">Details</a>
-  <a href="counts_v2.html">Counts</a>
-  <a href="network_viz.html">Network</a>
-  <a href="chord_viz.html">Chord</a>
-  <a href="matrix_viz.html">Matrix</a>
-  <a href="insights.html">Insights</a>
-  <span class="divider"></span>
-  <a href="intl_details_table.html">International Collabs</a>
-  <a href="intl_map.html">International Map</a>
-  <a href="intl_trends.html">International Trends</a>
-</div>
-<div class="preview-strip">ADMINISTRATOR PREVIEW — evaluation prototype. Not linked from the live site.</div>
+<div id="aa-nav"></div>
+<script src="nav.js" defer></script>
+<div class="preview-strip">ADMINISTRATOR PREVIEW — evaluation prototype.</div>
 <header>
   <h1>MIT Collaboration Network — Administrator Preview</h1>
   <div class="sub">The same validated AAD2024-2904 data, reframed for decision-makers: headline findings,
@@ -683,8 +667,12 @@ fetch("data/admin/admin_data.json")
     renderRetention(rsel.value);
     $("opPrint").addEventListener("click", () => { showTab("onepagers"); window.print(); });
 
-    const h = location.hash.replace("#", "");
-    if (h && document.getElementById("tab-" + h)) showTab(h);
+    const applyHashTab = () => {
+      const h = location.hash.replace("#", "");
+      if (h && document.getElementById("tab-" + h)) showTab(h);
+    };
+    applyHashTab();
+    window.addEventListener("hashchange", applyHashTab);
   })
   .catch((err) => {
     $("loading").innerHTML = "Could not load <b>data/admin/admin_data.json</b> (" + esc(err.message) +

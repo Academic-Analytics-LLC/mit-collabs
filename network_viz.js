@@ -49,6 +49,12 @@
   };
   const VIEWS = new Set(["explore", "focus", "compare", "path", "bridges"]);
   const LEVELS = new Set(["school", "department", "unit", "person"]);
+  // "Show partners" (Top N) control — trims the aggregate partner/unit nodes shown in the
+  // Anchor view (and, when it doesn't change anything, School/Department too) to the
+  // strongest N by tie works. "all" removes the cap. Page-local only (own sessionStorage key,
+  // not shared with counts_v2.html's PCT_KEY-style state).
+  const TOP_PARTNER_VALUES = new Set(["25", "50", "100", "all"]);
+  const TOPN_KEY = "aad2024_network_topn";
 
   const $ = (id) => document.getElementById(id);
   const canvas = $("networkCanvas");
@@ -62,6 +68,7 @@
     scope: "all",
     topAnchors: 50,
     partnerLimit: 150,
+    topPartners: 50,
     rankBy: "total",
     cap: "all",
     types: new Set(TYPE_KEYS),
@@ -233,6 +240,26 @@
     state.scope = SCOPE_RELS[query.get("scope")] ? query.get("scope") : "all";
     state.topAnchors = clampInteger(query.get("top"), 1, 1000, 50);
     state.partnerLimit = clampInteger(query.get("partners"), 1, 2000, 150);
+
+    // "Show partners" (Top N): restore the page-local remembered choice first (so navigating
+    // between anchors keeps it), then let an explicit ?topn= link win over that stored choice —
+    // same precedence counts_v2.html uses for its PCT_KEY restore vs. its ?pct= deep link.
+    let restoredTopPartners = state.topPartners;
+    try {
+      const stored = sessionStorage.getItem(TOPN_KEY);
+      if (TOP_PARTNER_VALUES.has(stored)) restoredTopPartners = stored === "all" ? "all" : parseInt(stored, 10);
+    } catch (e) { /* sessionStorage unavailable — keep default */ }
+    const topnRaw = query.get("topn");
+    if (TOP_PARTNER_VALUES.has(topnRaw)) {
+      state.topPartners = topnRaw === "all" ? "all" : parseInt(topnRaw, 10);
+      // An explicit link also updates the remembered choice, same as counts_v2.html's
+      // ?pct= deep link persists into its PCT_KEY — so it sticks across a later reload or
+      // anchor switch within the same session, not just for this one page view.
+      try { sessionStorage.setItem(TOPN_KEY, topnRaw); } catch (e) { /* ignore */ }
+    } else {
+      state.topPartners = restoredTopPartners;
+    }
+
     state.compareLimit = clampInteger(query.get("compareLimit"), 10, 2000, 100);
     state.compareShowAll = query.get("compareAll") === "1";
     state.rankBy = ["total", "1", "2"].includes(query.get("rank")) ? query.get("rank") : "total";
@@ -278,6 +305,11 @@
     return Number.isFinite(parsed) ? Math.max(min, Math.min(max, parsed)) : fallback;
   }
 
+  // Numeric cap implied by state.topPartners ("all" -> Infinity, i.e. no cap).
+  function topPartnersCap() {
+    return state.topPartners === "all" ? Infinity : Number(state.topPartners) || 50;
+  }
+
   function syncUrl() {
     if (!index || !state.anchorKey) return;
     const query = new URLSearchParams();
@@ -288,6 +320,7 @@
     if (state.unitKind !== "Department") query.set("uk", state.unitKind);
     if (state.topAnchors !== 50) query.set("top", String(state.topAnchors));
     if (state.partnerLimit !== 150) query.set("partners", String(state.partnerLimit));
+    if (state.topPartners !== 50) query.set("topn", String(state.topPartners));
     if (state.compareLimit !== 100) query.set("compareLimit", String(state.compareLimit));
     if (state.compareShowAll) query.set("compareAll", "1");
     if (state.rankBy !== "total") query.set("rank", state.rankBy);
@@ -361,7 +394,15 @@
     $("unitKindField").hidden = false;
     $("anchorField").hidden = isCompare;
     $("scopeField").hidden = false;
-    $("scholarSearchField").hidden = isCompare || isPath;
+    // Find Scholar only where individual scholars are on screen (People level; Focus/Bridges keep
+    // it since they're scholar-centric) — user asked for it to be hidden when not relevant.
+    $("scholarSearchField").hidden = isCompare || isPath || (state.view === "explore" && state.level !== "person");
+    // "Show partners" (Top N) on ALL Explore levels including People (user request 2026-07-16).
+    // On People it combines with the Filters-panel partnerLimit (tighter cap wins). On School it
+    // rarely bites (7 nodes) but stays for consistency. Focus/Compare/Path/Bridges keep their
+    // own existing caps untouched.
+    $("topPartnersField").hidden = state.view !== "explore";
+    $("topPartnersSelect").value = String(state.topPartners);
 
     $("topAnchors").value = String(state.topAnchors);
     $("partnerLimit").value = String(state.partnerLimit);
@@ -485,7 +526,10 @@
     const partnerSorted = [...partners]
       .filter((pid) => index.people[pid])
       .sort((a, b) => (degree.get(b) || 0) - (degree.get(a) || 0));
-    const visiblePartners = partnerSorted.slice(0, state.partnerLimit);
+    // "Show partners" (Top N) applies here too (user request 2026-07-16): effective cap is the
+    // tighter of the Filters-panel partnerLimit and the Top N control ("all" = Infinity).
+    const personPartnerCap = Math.min(state.partnerLimit, topPartnersCap());
+    const visiblePartners = partnerSorted.slice(0, personPartnerCap);
     if (state.selectedPid && partnerSorted.includes(state.selectedPid) && !visiblePartners.includes(state.selectedPid)) {
       visiblePartners.push(state.selectedPid);
     }
@@ -646,7 +690,10 @@
     const entries = (index.unit_edges[state.anchorKey] || [])
       .filter(unitEntryAllowed)
       .sort((a, b) => Number(b[2] || 0) - Number(a[2] || 0));
-    const kept = entries.slice(0, state.partnerLimit);
+    // "Show partners" (Top N) is the primary cap here — ranked by tie works (entry[2]), already
+    // sorted above. Default 50 keeps first load clean; "All" (Infinity) shows every partner.
+    const cap = topPartnersCap();
+    const kept = entries.slice(0, Number.isFinite(cap) ? cap : entries.length);
     const width = graphWidth();
     const height = graphHeight();
     const centerX = width / 2;
@@ -708,8 +755,18 @@
     const centerX = width / 2;
     const centerY = height / 2;
     const radius = Math.min(width, height) * 0.36;
-    const nodes = (source.nodes || []).map((node, itemIndex, allNodes) => {
-      const angle = (Math.PI * 2 * itemIndex) / Math.max(1, allNodes.length) - Math.PI / 2;
+    const allNodes = source.nodes || [];
+    // "Show partners" (Top N) also applies here when it would actually trim something (School
+    // has ~7 nodes, Department ~30 — both already under every Top N option except 25, so this
+    // is a no-op at the default 50 and doesn't reorder/restyle the existing small-graph layout
+    // unless the user explicitly picks a cap below the real node count).
+    const cap = topPartnersCap();
+    const useCap = Number.isFinite(cap) && cap < allNodes.length;
+    const rankedNodes = useCap
+      ? [...allNodes].sort((a, b) => Number(b.works || 0) - Number(a.works || 0)).slice(0, cap)
+      : allNodes;
+    const nodes = rankedNodes.map((node, itemIndex, list) => {
+      const angle = (Math.PI * 2 * itemIndex) / Math.max(1, list.length) - Math.PI / 2;
       return {
         ...node,
         kind: "aggregate",
@@ -734,7 +791,11 @@
       links,
       static: true,
       mode,
-      meta: { anchorCount: nodes.length },
+      meta: {
+        anchorCount: nodes.length,
+        totalPartners: allNodes.length,
+        droppedPartners: Math.max(0, allNodes.length - nodes.length),
+      },
     };
   }
 
@@ -2083,6 +2144,13 @@
       refresh();
     });
 
+    $("topPartnersSelect").addEventListener("change", () => {
+      const raw = $("topPartnersSelect").value;
+      state.topPartners = raw === "all" ? "all" : clampInteger(raw, 1, 5000, 50);
+      try { sessionStorage.setItem(TOPN_KEY, raw); } catch (e) { /* ignore */ }
+      refresh();
+    });
+
     $("compareA").addEventListener("change", () => {
       state.compareA = $("compareA").value;
       refresh();
@@ -2112,6 +2180,13 @@
         const meta = activeGraph.meta;
         if (meta.totalAnchors != null) state.topAnchors = clampInteger(meta.totalAnchors, 1, 1000, state.topAnchors);
         if (meta.totalPartners != null) state.partnerLimit = clampInteger(meta.totalPartners, 1, 2000, state.partnerLimit);
+        // School/Department/Anchor's cap is "Show partners" (topPartners), not partnerLimit —
+        // clear it too so "Show all" actually unhides everything in those views (per the
+        // standing convention that this control must work everywhere nodes are capped).
+        if (["unit", "school", "department", "person"].includes(activeGraph.mode)) {
+          state.topPartners = "all";
+          try { sessionStorage.setItem(TOPN_KEY, "all"); } catch (e) { /* ignore */ }
+        }
       }
       syncControls();
       refresh();

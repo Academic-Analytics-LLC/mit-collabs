@@ -38,3 +38,8 @@ _fresh_*
 _spliced_*.html
 _tail_*.html
 _details_check.js
+
+# 2026-07-16: session scratch (chord+matrix build, commit verification copies)
+_cm_*
+_verify_*
+_commit_*

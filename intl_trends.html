@@ -107,29 +107,11 @@ tbody td:first-child{text-align:left;font-weight:600}
 tbody tr:hover{background:#f5f8fb}
 .muted{color:#5a6a80}
 footer{padding:6px 20px;color:#5a6a80;font-size:10.5px;flex-shrink:0;background:var(--card);border-top:1px solid var(--line)}
-.aa-nav{background:#052448;padding:7px 20px;display:flex;gap:18px;flex-shrink:0;
-  font:12px 'Open Sans',-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif}
-.aa-nav a{color:rgba(255,255,255,.7);text-decoration:none;font-weight:600;letter-spacing:.02em;
-  padding:3px 2px;border-bottom:2px solid transparent}
-.aa-nav a:hover{color:#fff}
-.aa-nav a.cur{color:#fff;border-bottom-color:#0066b4}
-.aa-nav .divider{display:block;width:2px;align-self:stretch;background:#fff;margin:0 6px}
 </style>
 </head>
 <body>
-<div class="aa-nav">
-  <a href="key.html">Key</a>
-  <a href="details_v2.html">Details</a>
-  <a href="counts_v2.html">Counts</a>
-  <a href="network_viz.html">Network</a>
-  <a href="chord_viz.html">Chord</a>
-  <a href="matrix_viz.html">Matrix</a>
-  <a href="insights.html">Insights</a>
-  <span class="divider"></span>
-  <a href="intl_details_table.html">International Collabs</a>
-  <a href="intl_map.html">International Map</a>
-  <a href="intl_trends.html" class="cur">International Trends</a>
-</div>
+<div id="aa-nav"></div>
+<script src="nav.js" defer></script>
 <header>
   <h1>MIT International Collaborations — Trends by Year</h1>
   <div class="hdr-row">
@@ -248,7 +230,6 @@ function currentFilters() {
     types: new Set([...document.querySelectorAll("#typeCols input[data-t]")].filter(x => x.checked).map(x => x.dataset.t)),
   };
 }
-
 function currentMetric() { return $("metricSeg").querySelector("button.on").dataset.m; }
 
 // Per-year buckets for ONE anchor's payload under current Country/Partner Type/Work Type filters.

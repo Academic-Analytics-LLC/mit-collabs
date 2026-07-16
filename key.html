@@ -14,13 +14,6 @@
 html{scroll-behavior:smooth}
 body{font:15px/1.7 'Open Sans',-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:#1c2330;
      display:flex;flex-direction:column;min-height:100vh}
-.aa-nav{background:#052448;padding:7px 20px;display:flex;gap:18px;
-  font:12px 'Open Sans',-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;flex-shrink:0}
-.aa-nav a{color:rgba(255,255,255,.7);text-decoration:none;font-weight:600;letter-spacing:.02em;
-  padding:3px 2px;border-bottom:2px solid transparent}
-.aa-nav a:hover{color:#fff}
-.aa-nav a.cur{color:#fff;border-bottom-color:#0066b4}
-.aa-nav .divider{display:block;width:2px;align-self:stretch;background:#fff;margin:0 6px}
 header.doc{background:var(--navy);color:#fff;padding:0 28px;display:flex;align-items:center;gap:16px;height:54px;
   position:sticky;top:0;z-index:100}
 header.doc .site-title{font-family:'Crimson Text',serif;font-size:17px;font-weight:700;font-variant-numeric:lining-nums}
@@ -75,19 +68,8 @@ footer{padding:12px 20px;color:var(--muted);font-size:11px;border-top:1px solid 
 </style>
 </head>
 <body>
-<div class="aa-nav">
-  <a href="key.html" class="cur">Key</a>
-  <a href="details_v2.html">Details</a>
-  <a href="counts_v2.html">Counts</a>
-  <a href="network_viz.html">Network</a>
-  <a href="chord_viz.html">Chord</a>
-  <a href="matrix_viz.html">Matrix</a>
-  <a href="insights.html">Insights</a>
-  <span class="divider"></span>
-  <a href="intl_details_table.html">International Collabs</a>
-  <a href="intl_map.html">International Map</a>
-  <a href="intl_trends.html">International Trends</a>
-</div>
+<div id="aa-nav"></div>
+<script src="nav.js" defer></script>
 <header class="doc">
   <span class="site-title">MIT Collaboration Report — AAD2024</span>
   <div class="divider"></div>
@@ -128,7 +110,7 @@ footer{padding:12px 20px;color:var(--muted);font-size:11px;border-top:1px solid 
 <section class="section" id="overview">
 <h2 class="section-heading"><span class="sec-num">1</span>Overview</h2>
 <p>This report explores the collaborative relationships across units &mdash; both within and external to the <strong>Massachusetts Institute of Technology</strong> &mdash; built from the Academic Analytics comparative database <strong>AAD2024-2904</strong>. It covers roughly 1,270 MIT scholars and 16,700 distinct works across seven collaboration types. Note that scholars with no collaborations are not included.</p>
-<p>Six interactive pages share one navigation bar. Each offers a different lens on the same underlying data:</p>
+<p>These six pages sit together under &ldquo;AAD2024 Snapshot&rdquo; in the shared top nav &mdash; International &amp; Industry (a separate dataset/pipeline; see its own Overview page) has its own group alongside it, with Peer Comparisons and International Funding as upcoming groups. Each AAD2024 Snapshot page offers a different lens on the same underlying data:</p>
 <ul>
   <li><strong>Details</strong> — a detailed view of the entire dataset, with columns that can be shown concatenated or split into separate rows, and a one-row-per-work option for viewing each work's full collaborator roster.</li>
   <li><strong>Counts</strong> — distinct-works totals per college/school, department, or person.</li>
